@@ -102,7 +102,7 @@ class Service(Base):
     price = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
 
     def __str__(self):
-        return str(self.create_time) + str(self.total_sum)
+        return self.service_name
 
 
 class CategoryService(Base):
