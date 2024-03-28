@@ -30,8 +30,14 @@ class Client(Base):
 class ClientStatistics(Base):
     client = models.OneToOneField(Client, on_delete=models.CASCADE)
 
-    total_orders = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
-    total_sum_paid = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
+    total_orders = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                       default=0,
+                                       decimal_places=2,
+                                       max_digits=9)
+    total_sum_paid = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                         default=0,
+                                         decimal_places=2,
+                                         max_digits=9)
 
 
 class Worker(Base):
@@ -47,7 +53,8 @@ class WorkerHistory(Base):
     worker = models.OneToOneField(Worker, on_delete=models.CASCADE)
 
     date = models.DateTimeField()
-    cost = models.DecimalField()
+    cost = models.DecimalField(decimal_places=2,
+                               max_digits=9)
 
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
 
@@ -58,7 +65,11 @@ class WorkerHistory(Base):
 class WorkerStatistics(BaseStatistics):
     worker = models.OneToOneField(Worker, on_delete=models.CASCADE)
 
-    total_completed_orders = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
+    total_completed_orders = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                                 default=0,
+                                                 decimal_places=2,
+                                                 max_digits=9
+                                                 )
 
 
 class Owner(Base):
@@ -75,8 +86,12 @@ class Owner(Base):
 class Order(Base):
     create_time = models.DateTimeField()
     details = models.CharField(max_length=256, verbose_name="Notes")
-    total_sum = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
-    state = models.CharField(max_length=10,
+    total_sum = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                    default=0,
+                                    decimal_places=2,
+                                    max_digits=9
+                                    )
+    state = models.CharField(max_length=14,
                              choices=[(state.value, state.name) for state in OrderState],
                              default=OrderState.NONE.value
                              )
@@ -99,7 +114,11 @@ class OrderService(Base):
 
 class Service(Base):
     service_name = models.CharField(max_length=100, verbose_name="Service name")
-    price = models.DecimalField(validators=[MinValueValidator(0.00)], default=0)
+    price = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                default=0,
+                                decimal_places=2,
+                                max_digits=9
+                                )
 
     def __str__(self):
         return self.service_name
