@@ -2,7 +2,7 @@ from django.db import models
 
 
 class OrderState(models.TextChoices):
-    NONE = "Ничего"
-    READY = "Готово"
-    NEED_FITTING = "Нужна примерка"
-    IN_PROCESS = "В работе"
+    PLANNED = "Запланирован"
+    IN_PROGRESS = "В работе"
+    COMPLETED = "Сделан"
+    COMPLETED_BUT_NOT_PAID = "Сделан, но неоплачен"

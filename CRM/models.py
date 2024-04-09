@@ -85,7 +85,7 @@ class Owner(Base):
 
 
 class Order(Base):
-    date_accepted = models.DateTimeField()
+    date_planned = models.DateTimeField()
     date_ready = models.DateTimeField()
     service_name = models.CharField(max_length=256, verbose_name="Service Name")
     order_description = models.CharField(max_length=256, verbose_name="Order Description")
@@ -95,9 +95,9 @@ class Order(Base):
                                     decimal_places=2,
                                     max_digits=9
                                     )
-    state = models.CharField(max_length=14,
+    state = models.CharField(max_length=20,
                              choices=[(state.value, state.name) for state in OrderState],
-                             default=OrderState.NONE.value
+                             default=OrderState.PLANNED.value
                              )
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
 

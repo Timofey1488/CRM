@@ -16,17 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
 
-from CRM.views import HomeView
+from CRM.views import HomeView, BusinessAnalytics, ClientsList
+from atelierCRM import settings
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
-    # path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('analytics/', BusinessAnalytics.as_view(), name='business_analytics'),
+    path('clients/', ClientsList.as_view(), name='clients_list'),
 ]
-    # path(
-    #     'credits/',
-    #     include('credits.urls', namespace='credits')
-    # ),
-    # path('login/', AccountLoginView.as_view(), name='login'),
-    # path('signup/', SignUpView.as_view(), name='signup'),
