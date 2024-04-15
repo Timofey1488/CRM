@@ -15,10 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth.views import PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, \
+    PasswordResetView, PasswordChangeView
 from django.urls import path, include
 from django.conf.urls.static import static
 
-from CRM.views import HomeView, BusinessAnalytics, ClientsList, dashboard
+from CRM.views import HomeView, ClientsList, dashboard, AccountLoginView, BusinessAnalytics, LogoutView, \
+    registration_view
 from atelierCRM import settings
 
 urlpatterns = [
@@ -27,4 +30,43 @@ urlpatterns = [
     path('analytics/', BusinessAnalytics.as_view(), name='business_analytics'),
     path('clients/', ClientsList.as_view(), name='clients_list'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('login/', AccountLoginView.as_view(), name='login'),
+    path(
+        "logout/", LogoutView.as_view(),
+        name="user_logout"
+    ),
+    path('register/', registration_view, name='register'),
+    path(
+            'change-password/',
+            PasswordChangeView.as_view(
+                template_name='commons/password_change.html',
+                success_url='/'
+            ),
+            name='change_password'
+    ),
+
+        # Forget Password
+        path('password-reset/',
+             PasswordResetView.as_view(
+                 template_name='commons/password-reset/password_reset.html',
+                 subject_template_name='commons/password-reset/password_reset_subject.txt',
+                 success_url='/login/'
+             ),
+             name='password_reset'),
+        path('password-reset/done/',
+             PasswordResetDoneView.as_view(
+                 template_name='commons/password-reset/password_reset_done.html'
+             ),
+             name='password_reset_done'),
+        path('password-reset-confirm/<uidb64>/<token>/',
+             PasswordResetConfirmView.as_view(
+                 template_name='commons/password-reset/password_reset_confirm.html'
+             ),
+             name='password_reset_confirm'),
+        path('password-reset-complete/',
+             PasswordResetCompleteView.as_view(
+                 template_name='commons/password-reset/password_reset_complete.html'
+             ),
+             name='password_reset_complete'),
+
 ]

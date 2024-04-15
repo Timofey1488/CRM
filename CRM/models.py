@@ -101,7 +101,7 @@ class Order(Base):
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.date_accepted) + str(self.client.full_name)
+        return str(self.date_ready) + str(self.client.full_name)
 
 
 

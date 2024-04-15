@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'CRM'
+    'CRM',
+    'django_otp',
+    'django_otp.plugins.otp_totp'
 ]
 
 MIDDLEWARE = [
@@ -129,6 +131,7 @@ STATICFILES_DIRS = [
    os.path.join(BASE_DIR, "static"),
 ]
 
+LOGIN_REDIRECT_URL = '/'
 
 AUTH_USER_MODEL = "CRM.User"
 

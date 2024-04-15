@@ -1,12 +1,12 @@
 {% load static %}
-
-<div id="sidebar">
-    <div class="flex items-center flex-shrink-0 text-white">
-        <span><a href="{% url 'home' %}">
-            <img id="logo" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
-        </span>
-    </div>
+{% if request.user.is_authenticated %}
+<div id="sidebar" class="flex flex-col h-screen justify-between">
     <div id="menuItems ">
+        <div class="flex items-center flex-shrink-0 text-white ">
+            <span><a href="{% url 'home' %}">
+                <img id="logo" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
+            </span>
+        </div>
         <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 ml-3 items-center text-center hover:border border-white rounded p-2">
             <div class="icon text-center">
                  <i style="margin-right: 5px" class="fa fa-users" aria-hidden="true"></i>
@@ -31,5 +31,29 @@
                  Вся история
             </div>
         </a>
+
     </div>
+    <div >
+        <div class="ml-1 text-white bottom-0 flex justify-between mb-2">
+          <a href="{% url 'user_logout' %}" class="menu-item flex  items-center hover:border border-white rounded p-2">
+             <div class="">
+                 <i style="margin-right: 2px" class="fa fa-user-circle" aria-hidden="true"></i>
+                  {{ request.user.first_name }} {{ request.user.last_name }}
+            </div>
+            </a>
+      </div>
+        <hr style="border-top: 2px solid white; margin: 0">
+        <div class="pl-2 text-white text-center bottom-0 flex mt-0 menu-item rounded ">
+            <!-- Cсылка на выход из аккаунта -->
+            <a href="{% url 'user_logout' %}" class="menu-item flex rounded p-1">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-sign-out" aria-hidden="true"></i>
+                 Выйти
+            </div>
+            </a>
+        </div>
+    </div>
+
 </div>
+{% endif %}
+
