@@ -41,8 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'CRM',
-    'bootstrap_datepicker_plus',
+    'CRM'
 ]
 
 MIDDLEWARE = [

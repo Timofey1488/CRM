@@ -15,3 +15,6 @@ class ClientsList(TemplateView):
     template_name = 'clients/clients.html'
 
 
+def dashboard(request):
+    return render(request, 'dashboard/dashboard.html')
+

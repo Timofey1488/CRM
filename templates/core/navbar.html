@@ -6,26 +6,26 @@
             <img id="logo" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
         </span>
     </div>
-    <div id="menuItems">
-        <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 items-center hover:border border-white rounded p-2">
-            <div class="icon">
+    <div id="menuItems ">
+        <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 ml-3 items-center text-center hover:border border-white rounded p-2">
+            <div class="icon text-center">
                  <i style="margin-right: 5px" class="fa fa-users" aria-hidden="true"></i>
                 Клиенты
             </div>
         </a>
-        <a href="{% url 'business_analytics' %}" class="menu-item flex items-center hover:border border-white rounded p-2">
+        <a href="{% url 'business_analytics' %}" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
              <div class="icon">
                 <i style="margin-right: 5px" class="fa fa-pie-chart" aria-hidden="true"></i>
                 Аналитика
             </div>
         </a>
-        <a href="#" class="menu-item flex items-center hover:border border-white rounded p-2">
+        <a href="{% url 'dashboard' %}" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
              <div class="icon">
                 <i style="margin-right: 5px" class="fa fa-th-large" aria-hidden="true"></i>
                  Доска заказов
             </div>
         </a>
-         <a href="#" class="menu-item flex items-center hover:border border-white rounded p-2">
+         <a href="#" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
              <div class="icon">
                 <i style="margin-right: 5px" class="fa fa-history" aria-hidden="true"></i>
                  Вся история

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -85,8 +85,7 @@ class Owner(Base):
 
 
 class Order(Base):
-    date_planned = models.DateTimeField()
-    date_ready = models.DateTimeField()
+    date_ready = models.DateTimeField(default=datetime.now)
     service_name = models.CharField(max_length=256, verbose_name="Service Name")
     order_description = models.CharField(max_length=256, verbose_name="Order Description")
     notes = models.CharField(max_length=256, verbose_name="Notes")

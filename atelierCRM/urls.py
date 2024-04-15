@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 
-from CRM.views import HomeView, BusinessAnalytics, ClientsList
+from CRM.views import HomeView, BusinessAnalytics, ClientsList, dashboard
 from atelierCRM import settings
 
 urlpatterns = [
@@ -26,4 +26,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('analytics/', BusinessAnalytics.as_view(), name='business_analytics'),
     path('clients/', ClientsList.as_view(), name='clients_list'),
+    path('dashboard/', dashboard, name='dashboard'),
 ]
