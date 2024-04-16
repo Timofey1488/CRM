@@ -20,6 +20,7 @@ from django.contrib.auth.views import PasswordResetCompleteView, PasswordResetCo
 from django.urls import path, include
 from django.conf.urls.static import static
 
+from CRM import views
 from CRM.views import HomeView, ClientsList, dashboard, AccountLoginView, BusinessAnalytics, LogoutView, \
     registration_view
 from atelierCRM import settings
@@ -28,6 +29,7 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('admin/', admin.site.urls),
     path('analytics/', BusinessAnalytics.as_view(), name='business_analytics'),
+    path('import-clients/', views.import_clients, name='import_clients'),
     path('clients/', ClientsList.as_view(), name='clients_list'),
     path('dashboard/', dashboard, name='dashboard'),
     path('login/', AccountLoginView.as_view(), name='login'),

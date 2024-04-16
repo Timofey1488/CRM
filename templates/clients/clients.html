@@ -4,13 +4,16 @@
     <div class="mt-8 mb-4">
      <h1 class="text-2xl font-semibold text-gray-700">Клиенты</h1>
     <hr class="border-b-2 border-gray-300 my-2 mb-10">
+        <form class="p-3" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" name="files" id="files" multiple class="hidden">
+                    <label for="files" class="bg-blue-200 text-black px-4 py-1 rounded hover:bg-blue-600 cursor-pointer">Выберите файлы</label>
+                    <button type="submit" class="bg-blue-400 text-white px-4 py-1 rounded hover:bg-blue-600">Импортировать</button>
+                </form>
         <div class="flex justify-between mb-4">
-            <div class="flex w-full mr-2 fa-pen-to-square">
-                <input type="search" placeholder="Поиск клиента..." class="border border-gray-200 px-4 mr-5 rounded w-full">
-                <button class="bg-blue-700 text-white px-4 rounded hover:bg-blue-600">Найти</button>
-                 <a href="#" class=" flex  bg-blue-500 text-white text-center px-6 ml-3 text-decoration-none rounded hover:bg-blue-600  items-center justify-center">
-                    Импорт клиента
-                </a>
+           <div class="flex w-full mr-2 fa-pen-to-square">
+                <input type="search" placeholder="Поиск клиента..." class="border border-gray-200 px-4 py-2 mr-5 rounded w-full">
+                <button class="bg-blue-700 text-white px-4 rounded hover:bg-blue-600 py-2">Найти</button>
             </div>
 
         </div>
@@ -22,7 +25,7 @@
                             <th class="py-2 px-4 border border-gray-200">Телефон</th>
                             <th class="py-2 px-4 border border-gray-200">Действия</th>
                         </tr>
-                        </thead>
+                    </thead>
                     <tbody>
                      {% for client in clients %}
                     <tr>
