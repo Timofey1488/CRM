@@ -6,14 +6,14 @@ from typing import List, Dict
 import pandas as pd
 
 
-def process_excel_files(directory):
-    for i, filename in enumerate(os.listdir(directory)):
-        if filename.endswith(".xlsx") or filename.endswith(".xls"):
-            filepath = os.path.join(directory, filename)
-            parse_excel(i, filepath)
+# def process_excel_files(directory):
+#     for i, filename in enumerate(os.listdir(directory)):
+#         if filename.endswith(".xlsx") or filename.endswith(".xls"):
+#             filepath = os.path.join(directory, filename)
+#             parse_excel(filepath)
 
 
-def parse_excel(index, filepath):
+def parse_excel(filepath):
     try:
         with pd.ExcelFile(filepath) as xls:
             df = pd.read_excel(xls, header=1)
@@ -24,22 +24,24 @@ def parse_excel(index, filepath):
             column_order = df.iloc[:, 2]
             column_order_price = df.iloc[:, 3]
             column_date_order = df.iloc[:, 4]
-            column_notes = df.iloc[:, 5]
+            column_notes = df.iloc[:, 6]
 
             final_full_name_from_exel = ', '.join(parse_full_name(column_data_name))
-            print(f"{index}) {final_full_name_from_exel}")
             final_number_from_exel = ', '.join(parse_number(column_data_number))
-            print(f"{final_number_from_exel}")
-
             final_full_order_from_exel = parse_order(column_order, column_order_price, column_date_order)
             final_full_order_from_exel_lists = list(final_full_order_from_exel.values())
-            for client_orders in final_full_order_from_exel_lists:
-                if client_orders != ['  ']:
-                    print(client_orders)
+            final_full_notes_from_exel = ', '.join(parse_notes(column_notes))
 
-            # print(final_full_order_from_exel)
-        else:
-            print(f"Column '{column_full_name}' not found in file: {filepath}")
+            print(f"{final_full_name_from_exel}")
+            print(f"{final_number_from_exel}")
+            print(final_full_order_from_exel_lists)
+            print(final_full_notes_from_exel)
+            # for client_orders in final_full_order_from_exel_lists:
+            #     if client_orders != ['  ']:
+            #         print(client_orders)
+            return [final_full_name_from_exel, final_number_from_exel, final_full_order_from_exel_lists,
+                    final_full_notes_from_exel]
+
     except Exception as e:
         print(f"Error processing file {filepath}: {str(e)}")
 
@@ -58,14 +60,26 @@ def parse_full_name(column_data_name) -> List:
 def parse_number(column_data_number) -> List:
     numbers_list = []
     for index, value in column_data_number.items():
-        if value and not pd.isnull(value):
+        if value != " " and not pd.isnull(value):
             if str(value)[0:2] == "80":
                 numbers_list.append(f"{value:.0f}")
+            elif type(value) == float or type(value) == int:
+                numbers_list.append(f"+375({str(value)[0:2]}){str(value)[2:5]}-{str(value)[5:7]}-{str(value)[7:9]}")
             else:
-                numbers_list.append(f"+375({str(value)[0:2]}){str(value)[2:5]}-{str(value)[5:7]}-{str(value)[7:9]}\n")
+                numbers_list.append(f"Не указан")
         else:
             break
     return numbers_list
+
+
+def parse_notes(column_data_notes) -> List:
+    notes_list = []
+    for index, value in column_data_notes.items():
+        if value != " " and not pd.isnull(value):
+            notes_list.append(f"{value}")
+        else:
+            break
+    return notes_list
 
 
 def parse_order(column_order, column_order_price, column_date_order) -> Dict:
@@ -101,4 +115,4 @@ column_order_price = 'Сумма заказа'
 column_date_order = 'Дата принятия'
 column_notes = 'Заметки'
 
-process_excel_files(directory)
+

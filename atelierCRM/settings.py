@@ -130,7 +130,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
    os.path.join(BASE_DIR, "static"),
 ]
-
+DATA_UPLOAD_MAX_NUMBER_FILES = 10000
 LOGIN_REDIRECT_URL = '/'
 
 AUTH_USER_MODEL = "CRM.User"

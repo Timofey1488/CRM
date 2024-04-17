@@ -69,3 +69,17 @@
     #total-orders{
         background-color: #4ac1f7;
     }
+
+    /* Оформление кнопки */
+        .custom-button {
+            background-color: #4CAF50; /* Зеленый цвет */
+            color: white; /* Белый цвет текста */
+            padding: 10px 20px; /* Отступы */
+            border: none; /* Убираем границу */
+            border-radius: 4px; /* Закругление углов */
+            cursor: pointer; /* Указатель при наведении */
+        }
+        /* Оформление кнопки при наведении */
+        .custom-button:hover {
+            background-color: #45a049; /* Темно-зеленый цвет */
+        }

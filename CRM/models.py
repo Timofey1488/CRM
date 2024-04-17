@@ -17,7 +17,7 @@ class User(AbstractUser):
 
 
 class Client(Base):
-    phone = models.CharField(max_length=15, verbose_name="Phone Number")
+    phone = models.CharField(max_length=256, verbose_name="Phone Number")
     full_name = models.CharField(max_length=256, verbose_name='Full name')
 
     def __str__(self):

@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-2xl font-semibold text-gray-700">Профиль клиента: {{ client.full_name }}</h1>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+    <p>Телефон: {{ client.phone }}</p>
+
+    <h4>Заказы клиента:</h4>
+    {% if orders %}
+        <ul>
+            {% for order in orders %}
+                <li>{{ order.service_name }} - {{ order.date_ready }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У клиента нет заказов.</p>
+    {% endif %}
+
+    <h4>Активные заказы клиента:</h4>
+    {% if active_orders %}
+        <ul>
+            {% for order in active_orders %}
+                <li>{{ order.service_name }} - {{ order.date_ready }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У клиента нет активных заказов.</p>
+    {% endif %}
+
+    <!-- Форма для изменения информации о клиенте -->
+    <h4>Изменить информацию о клиенте:</h4>
+    <form method="post">
+        {% csrf_token %}
+        <!-- Здесь добавьте поля для изменения информации о клиенте -->
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    </form>
+</div>
+{% endblock %}

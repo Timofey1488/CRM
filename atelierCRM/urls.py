@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 
 from CRM import views
 from CRM.views import HomeView, ClientsList, dashboard, AccountLoginView, BusinessAnalytics, LogoutView, \
-    registration_view
+    registration_view, ClientDetailView, ClientDeleteView, ClientsDeleteView
 from atelierCRM import settings
 
 urlpatterns = [
@@ -31,6 +31,9 @@ urlpatterns = [
     path('analytics/', BusinessAnalytics.as_view(), name='business_analytics'),
     path('import-clients/', views.import_clients, name='import_clients'),
     path('clients/', ClientsList.as_view(), name='clients_list'),
+    path('clients/<int:pk>/', ClientDetailView.as_view(), name='client_details'),
+    path('clients/<int:pk>/delete/', ClientDeleteView.as_view(), name='client_delete'),
+    path('clients/delete/all', ClientsDeleteView.as_view(), name='clients_delete_all'),
     path('dashboard/', dashboard, name='dashboard'),
     path('login/', AccountLoginView.as_view(), name='login'),
     path(
