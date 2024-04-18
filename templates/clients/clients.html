@@ -13,20 +13,21 @@
                 <button type="submit" class="btn btn-primary">Импортировать</button>
             </div>
         </form>
+      <form method="get" action="{% url 'clients_list' %}">
         <div class="flex justify-between mb-4">
            <div class="flex w-full fa-pen-to-square">
-                <input type="search" placeholder="Поиск клиента..." class="border border-gray-200 px-4 py-2 mr-5 rounded w-full">
+                <input type="search" name="q" value="{{ query }}" placeholder="Поиск клиента..." class="border border-gray-200 px-4 py-2 mr-5 rounded w-full">
                 <button class="bg-blue-700 text-white px-4 rounded hover:bg-blue-600 py-2">Найти</button>
             </div>
-
         </div>
+      </form>
 
         <table class="w-full border-collapse border border-gray-200">
-                {% if clients%}
+                {% if  client_objects %}
                     <div class="d-flex justify-content-between">
-                        <h6>Всего клиентов: {{ clients.count }}</h6>
+                        <h6>Всего клиентов: {{ clients.paginator.count }}</h6>
                         {% if  request.user.is_staff %}
-                            <a href="{% url 'clients_delete_all'%}" class="text-red-500 hover:underline">Удалить всех</a>
+                            <a href="{% url 'clients_delete_all' %}" class="text-red-500 hover:underline">Удалить всех</a>
                         {% endif %}
                     </div>
                     <thead class="bg-gray-100">
@@ -37,7 +38,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                     {% for client in clients %}
+                     {% for client in client_objects %}
                     <tr>
                         <td class="py-2 px-4 border border-gray-200">{{ client.full_name }}</td>
                         <td class="py-2 px-4 border border-gray-200">{{ client.phone }}</td>
@@ -55,5 +56,23 @@
              {% endif %}
             </tbody>
         </table>
+        <!-- Добавляем разметку для пагинации -->
+        {% if clients.has_other_pages %}
+        <div class="pagination mt-3 d-flex justify-content-center">
+            <span class="step-links">
+                {% if clients.has_previous %}
+                    <a href="?page={{ clients.previous_page_number }}">Предыдущая</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ clients.number }} из {{ clients.paginator.num_pages }}.
+                </span>
+
+                {% if clients.has_next %}
+                    <a href="?page={{ clients.next_page_number }}">Следующая</a>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
     </div>
 {% endblock %}

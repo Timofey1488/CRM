@@ -33,7 +33,7 @@ urlpatterns = [
     path('clients/', ClientsList.as_view(), name='clients_list'),
     path('clients/<int:pk>/', ClientDetailView.as_view(), name='client_details'),
     path('clients/<int:pk>/delete/', ClientDeleteView.as_view(), name='client_delete'),
-    path('clients/delete/all', ClientsDeleteView.as_view(), name='clients_delete_all'),
+    path('clients/delete_all', ClientsDeleteView.as_view(), name='clients_delete_all'),
     path('dashboard/', dashboard, name='dashboard'),
     path('login/', AccountLoginView.as_view(), name='login'),
     path(

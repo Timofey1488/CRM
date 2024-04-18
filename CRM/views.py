@@ -8,7 +8,8 @@ import requests
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db.models import Sum
+from django.core.paginator import PageNotAnInteger, Paginator, EmptyPage
+from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -70,13 +71,35 @@ class BusinessAnalytics(TemplateView):
 
 
 class ClientsList(LoginRequiredMixin, TemplateView):
-    model = Client
     template_name = 'clients/clients.html'
     context_object_name = 'clients'
+    paginate_by = 100  # Количество клиентов на странице
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Client.objects.filter(Q(full_name__icontains=query) | Q(phone__icontains=query))
+        else:
+            return Client.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['clients'] = Client.objects.all()  # Получаем всех клиентов и добавляем их в контекст
+        clients_list = self.get_queryset()
+        paginator = Paginator(clients_list, self.paginate_by)
+        page = self.request.GET.get('page')
+        try:
+            clients = paginator.page(page)
+        except PageNotAnInteger:
+            # Если параметр страницы не является целым числом, выводим первую страницу
+            clients = paginator.page(1)
+        except EmptyPage:
+            # Если параметр страницы находится за пределами доступных страниц, выводим последнюю страницу
+            clients = paginator.page(paginator.num_pages)
+
+        context['clients'] = clients
+        context['client_objects'] = clients.object_list
+        print(f"client_list: {clients.object_list}")
+        context['query'] = self.request.GET.get('q', '')  # Передаем последний запрос в контекст
         return context
 
 
@@ -88,7 +111,7 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
 
 class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Client
-    template_name = 'clients/client_delete.html'
+    template_name = 'clients/client_delete_confirmation.html'
     success_url = reverse_lazy('clients_list')
 
     def test_func(self):
@@ -102,19 +125,24 @@ class ClientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 class ClientsDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
+    model = Client
+    template_name = 'clients/clients_delete_all_confirmation.html'
+    success_url = reverse_lazy('clients_list')
+
     def test_func(self):
         return self.request.user.is_staff
 
     def get(self, request, *args, **kwargs):
-        return redirect('clients_list')
+        return render(request, self.template_name)
 
     def post(self, request, *args, **kwargs):
         if self.request.user.is_staff:
             Client.objects.all().delete()  # Удаляем всех клиентов
-            messages.success(request, 'Все клиенты успешно удалены.')
+            messages.success(self.request, 'Все клиенты успешно удалены.')
+            return redirect(self.success_url)
         else:
-            messages.error(request, 'У вас нет прав для выполнения этой операции.')
-        return redirect('clients_list')
+            messages.error(self.request, 'У вас нет прав для выполнения этой операции.')
+            return redirect(self.success_url)
 
 
 def dashboard(request):
@@ -127,23 +155,23 @@ def import_clients(request):
         for uploaded_file in uploaded_files:
             if uploaded_file.name.endswith(('.xlsx', '.xls')):
                 client_data_list = parse_excel(uploaded_file)
+                if client_data_list is not None and len(client_data_list) >= 2:
+                    # Проверка наличия пользователя в базе данных и создание или обновление данных
+                    name = client_data_list[0]
+                    phone = client_data_list[1]
 
-                # Проверка наличия пользователя в базе данных и создание или обновление данных
-                name = client_data_list[0]
-                phone = client_data_list[1]
-                # Здесь выполняется ваш код для обработки каждой пары (name, phone)
-                # Например:
-                print("Имя:", name)
-                print("Телефон:", phone)
-                try:
-                    # Проверяем, существует ли пользователь с таким номером телефона
-                    client = Client.objects.get(phone=phone)
-                    # Если пользователь существует, обновляем его данные
-                    client.full_name = name
-                    client.save()
-                except Client.DoesNotExist:
-                    # Если пользователь не существует, создаем нового
-                    Client.objects.create(full_name=name, phone=phone)
+                    # Здесь выполняется код для обработки каждой пары (name, phone)
+                    print("Имя:", name)
+                    print("Телефон:", phone)
+                    try:
+                        # Проверяем, существует ли пользователь с таким номером телефона
+                        client = Client.objects.get(phone=phone)
+                        # Если пользователь существует, обновляем его данные
+                        client.full_name = name
+                        client.save()
+                    except Client.DoesNotExist:
+                        # Если пользователь не существует, создаем нового
+                        Client.objects.create(full_name=name, phone=phone)
 
             else:
                 return HttpResponse("Файл должен быть формата .xlsx или .xls")
@@ -152,18 +180,10 @@ def import_clients(request):
     return render(request, 'clients/clients.html', {'clients': clients})
 
 
-# Ваша функция для обработки данных из файла Excel
-def process_excel_data(file_path):
-    # Пример обработки данных из файла Excel
-    data = [
-        {"full_name": "Иванов Иван", "phone": "1234567890", "service_name": "Услуга 1",
-         "order_description": "Описание заказа 1", "notes": "Примечание 1", "total_sum": 100.00},
-        {"full_name": "Петров Петр", "phone": "9876543210", "service_name": "Услуга 2",
-         "order_description": "Описание заказа 2", "notes": "Примечание 2", "total_sum": 200.00},
-        # Добавьте данные для других заказов
-    ]
-    return data
-
+def search_view(request):
+    query = request.GET.get('q', '')  # Получаем значение из параметра запроса 'q'
+    results = Client.objects.filter(Q(full_name__icontains=query) | Q(phone__icontains=query))
+    return render(request, 'clients/clients.html', {'results': results, 'query': query})
 
 # Ваша функция для создания заказов
 def create_orders_from_excel_data(data):
