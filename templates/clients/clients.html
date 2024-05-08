@@ -10,18 +10,23 @@
                 <div class="custom-file ">
                     <input type="file" class="custom-file-input" id="customFile" name="files" multiple accept=".xlsx, .xls">
                 </div>
-                <button type="submit" class="btn btn-primary">Импортировать</button>
+                <button type="submit" class="btn btn-primary inline-flex align-items-center"><i style="margin-right: 5px" class="fa fa-upload" aria-hidden="true"></i>  Импортировать</button>
             </div>
         </form>
       <form method="get" action="{% url 'clients_list' %}">
         <div class="flex justify-between mb-4">
            <div class="flex w-full fa-pen-to-square">
                 <input type="search" name="q" value="{{ query }}" placeholder="Поиск клиента..." class="border border-gray-200 px-4 py-2 mr-5 rounded w-full">
-                <button class="bg-blue-700 text-white px-4 rounded hover:bg-blue-600 py-2">Найти</button>
+                <button class="bg-blue-700 inline-flex align-items-center text-white px-4 rounded hover:bg-blue-600 py-2"><i style="margin-right: 5px" class="fa fa-search" aria-hidden="true"></i>  Найти</button>
             </div>
         </div>
       </form>
-
+        <a class="btn btn-primary  btn-block mb-3" href="{% url 'create_client' %}">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-plus" aria-hidden="true"></i>
+                 Создать нового клиента
+            </div>
+        </a>
         <table class="w-full border-collapse border border-gray-200">
                 {% if  client_objects %}
                     <div class="d-flex justify-content-between">
@@ -39,11 +44,14 @@
                     </thead>
                     <tbody>
                      {% for client in client_objects %}
-                    <tr>
-                        <td class="py-2 px-4 border border-gray-200">{{ client.full_name }}</td>
+                    <tr onclick="window.location='{% url 'client_details' client.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
+                        <td class="py-2 px-4 border border-gray-200">
+                            <a href="{% url 'client_details' client.id %}" class="text-black hover-border pr-5">
+                            {{ client.full_name }}</a>
+                        </td>
                         <td class="py-2 px-4 border border-gray-200">{{ client.phone }}</td>
                         <td class="py-2 px-4 border d-flex justify-content-end border-gray-200">
-                            <a href="{% url 'client_details' client.id %}" class="text-blue-500 hover:underline pr-5">Просмотр</a>
+                            <a href="{% url 'client_edit_info' client.id %}" class="text-blue-500 hover:underline pr-5">Изменить</a>
                             {% if  request.user.is_staff %}
                                 <a href="{% url 'client_delete' client.id %}" class="text-red-500 hover:underline">Удалить</a>
                             {% endif %}
@@ -56,6 +64,8 @@
              {% endif %}
             </tbody>
         </table>
+
+
         <!-- Добавляем разметку для пагинации -->
         {% if clients.has_other_pages %}
         <div class="pagination mt-3 d-flex justify-content-center">
@@ -76,3 +86,8 @@
         {% endif %}
     </div>
 {% endblock %}
+<style>
+.hover\:bg-gray-100:hover {
+    background-color: #f3f4f6 !important;
+}
+</style>

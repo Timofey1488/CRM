@@ -1,9 +1,7 @@
-from datetime import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-
+from django.utils import timezone
 from core.enums.order_state import OrderState
 from core.enums.user_enum import UserRole
 from core.models.abstract_models import Base, BaseStatistics
@@ -19,6 +17,7 @@ class User(AbstractUser):
 class Client(Base):
     phone = models.CharField(max_length=256, verbose_name="Phone Number")
     full_name = models.CharField(max_length=256, verbose_name='Full name')
+    notes = models.CharField(max_length=256, verbose_name="Client Notes", null=True)
 
     def __str__(self):
         return self.full_name + self.phone
@@ -85,10 +84,10 @@ class Owner(Base):
 
 
 class Order(Base):
-    date_ready = models.DateTimeField(default=datetime.now)
+    date_accept = models.DateField(null=True, blank=True)
+    date_ready = models.DateTimeField(null=True, blank=True)
     service_name = models.CharField(max_length=256, verbose_name="Service Name")
-    order_description = models.CharField(max_length=256, verbose_name="Order Description")
-    notes = models.CharField(max_length=256, verbose_name="Notes")
+    notes = models.CharField(max_length=256, verbose_name="Notes", null=True, blank=True)
     total_sum = models.DecimalField(validators=[MinValueValidator(0.00)],
                                     default=0,
                                     decimal_places=2,
@@ -101,7 +100,7 @@ class Order(Base):
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.date_ready) + str(self.client.full_name)
+        return str(self.date_accept) + " " + str(self.service_name) + str(self.total_sum) + 'руб'
 
 
 

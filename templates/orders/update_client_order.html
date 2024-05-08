@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mx-auto">
+    <div class="flex justify-between mt-4">
+         <h1 class="text-2xl  font-semibold text-gray-700">Изменение заказа для клиента {{ order.client.full_name }}</h1>
+         <a class="text-xl font-semibold text-red-500 hover:text-red-700 no-underline" href="{% url 'order_delete' order.id%}"><i class="fa fa-trash-o" aria-hidden="true"></i><span class="ml-2 ">Удалить</span></a>
+    </div>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+    <form method="post" class="space-y-2 max-w-md">
+        {% csrf_token %}
+
+        <div>
+            <label for="{{ form.date_accept.id_for_label }}" class="block text-sm font-medium text-gray-700">Дата принятия</label>
+            {{ form.date_accept|add_class:"form-input block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+
+        <div>
+            <label for="{{ form.date_ready.id_for_label }}" class="block text-sm font-medium text-gray-700">Дата готовности</label>
+            {{ form.date_ready|add_class:"form-input block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+
+        <div>
+            <label for="{{ form.service_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Название услуги</label>
+            {{ form.service_name|add_class:"form-input block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+
+        <div>
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">Заметки</label>
+            {{ form.notes|add_class:"form-input block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+
+        <div>
+            <label for="{{ form.total_sum.id_for_label }}" class="block text-sm font-medium text-gray-700">Сумма заказа</label>
+            {{ form.total_sum|add_class:"form-input block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+
+        <div>
+            <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-gray-700">Статус</label>
+            {{ form.state|add_class:"form-select block w-full sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
+        <div class="flex justify-between">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Обновить</button>
+            <a  href="{% url 'client_details' client.id %}" class="btn btn-outline-primary">Вернуться</a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

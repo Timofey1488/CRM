@@ -1,29 +1,12 @@
-"""
-URL configuration for atelierCRM project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.contrib.auth.views import PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, \
     PasswordResetView, PasswordChangeView
-from django.urls import path, include
-from django.conf.urls.static import static
+from django.urls import path
 
 from CRM import views
 from CRM.views import HomeView, ClientsList, dashboard, AccountLoginView, BusinessAnalytics, LogoutView, \
-    registration_view, ClientDetailView, ClientDeleteView, ClientsDeleteView
-from atelierCRM import settings
+    registration_view, ClientDetailView, ClientDeleteView, ClientsDeleteView, CreateClientView, ClientEditView, \
+    ClientCreateOrder, ClientOrderEditView, OrderDeleteView
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -32,8 +15,13 @@ urlpatterns = [
     path('import-clients/', views.import_clients, name='import_clients'),
     path('clients/', ClientsList.as_view(), name='clients_list'),
     path('clients/<int:pk>/', ClientDetailView.as_view(), name='client_details'),
+    path('clients/edit/<int:pk>/', ClientEditView.as_view(), name='client_edit_info'),
+    path('clients/<int:pk>/order/', ClientCreateOrder.as_view(), name='client_create_order'),
+    path('clients/<int:pk>/order_update/', ClientOrderEditView.as_view(), name='client_update_order'),
     path('clients/<int:pk>/delete/', ClientDeleteView.as_view(), name='client_delete'),
+    path('orders/clients/delete_order/<int:pk>', OrderDeleteView.as_view(), name='order_delete'),
     path('clients/delete_all', ClientsDeleteView.as_view(), name='clients_delete_all'),
+    path('clients/create_new', CreateClientView.as_view(), name='create_client'),
     path('dashboard/', dashboard, name='dashboard'),
     path('login/', AccountLoginView.as_view(), name='login'),
     path(

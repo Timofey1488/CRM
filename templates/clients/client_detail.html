@@ -1,38 +1,111 @@
 {% extends 'core/base.html' %}
 {% block content %}
-<div class="container mt-4">
-    <h1 class="text-2xl font-semibold text-gray-700">Профиль клиента: {{ client.full_name }}</h1>
-    <hr class="border-b-2 border-gray-300 my-2 mb-10">
-    <p>Телефон: {{ client.phone }}</p>
-
-    <h4>Заказы клиента:</h4>
-    {% if orders %}
-        <ul>
-            {% for order in orders %}
-                <li>{{ order.service_name }} - {{ order.date_ready }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>У клиента нет заказов.</p>
-    {% endif %}
-
-    <h4>Активные заказы клиента:</h4>
+<div class="container mt-4 mb-4">
+    <div class="flex justify-between">
+        <h1 class="text-2xl font-semibold text-gray-700">{{ client.full_name }}, Телефон: {{ client.phone }}</h1>
+         <a class="text-2xl font-semibold text-gray-700 hover:text-blue-500" href="{% url 'client_edit_info' client.id%}"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+    </div>
+    <hr class="border-b-2 border-gray-300 my-2 mb-30">
+    <h4 class="mt-10">Заметки по клиенту:</h4>
+    <form id="updateNotesForm" action="" method="POST">
+        {% csrf_token %}
+        <textarea id="notesInput" name="notes" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ client.notes }}</textarea>
+        <p id="saveMessage" class="text-green-500"></p>
+        <button type="submit"  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Сохранить заметки
+        </button>
+    </form>
+    <div class="flex items-center justify-between mt-10">
+        <h4 class="">Активные заказы клиента:</h4>
+         <a class="hover:text-black text-green" href="{% url 'client_create_order' client.id%}">
+             <div class="h-6 w-6">
+                <i style="margin-right: 5px" class=" fa-lg fa fa-plus" aria-hidden="true"></i>
+            </div>
+            </a>
+    </div>
     {% if active_orders %}
-        <ul>
-            {% for order in active_orders %}
-                <li>{{ order.service_name }} - {{ order.date_ready }}</li>
-            {% endfor %}
-        </ul>
+        <table class="w-full border-collapse border border-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-2 px-4 border border-gray-200">Услуга</th>
+                    <th class="py-2 px-4 border border-gray-200">Сумма</th>
+                    <th class="py-2 px-4 border border-gray-200">Дата принятия</th>
+                    <th class="py-2 px-4 border border-gray-200">Статус</th>
+                    <th class="py-2 px-4 border border-gray-200">Дата сдачи</th>
+                    <th class="py-2 px-4 border border-gray-200">Заметки</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in active_orders %}
+                    <tr onclick="window.location='{% url 'client_update_order' order.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
+                        <td class="py-2 px-4 border border-gray-200">{{ order.service_name }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.date_accept|date:"DATE_FORMAT" }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.date_ready|date:"DATETIME_FORMAT" }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.notes }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+    </table>
     {% else %}
         <p>У клиента нет активных заказов.</p>
     {% endif %}
 
-    <!-- Форма для изменения информации о клиенте -->
-    <h4>Изменить информацию о клиенте:</h4>
-    <form method="post">
-        {% csrf_token %}
+
+    <h4 class="mt-10">Заказы клиента:</h4>
+   {% if orders %}
+    <table class="w-full border-collapse border border-gray-200 mb-10">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-2 px-4 border border-gray-200">Услуга</th>
+                    <th class="py-2 px-4 border border-gray-200">Сумма</th>
+                    <th class="py-2 px-4 border border-gray-200">Дата принятия</th>
+                    <th class="py-2 px-4 border border-gray-200">Статус</th>
+                    <th class="py-2 px-4 border border-gray-200">Дата сдачи</th>
+                    <th class="py-2 px-4 border border-gray-200">Заметки</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr onclick="window.location='{% url 'client_update_order' order.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
+                        <td class="py-2 px-4 border border-gray-200">{{ order.service_name }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.date_accept|date:"DATE_FORMAT" }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.date_ready|date:"DATETIME_FORMAT" }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ order.notes}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                    <tr class="font-semibold text-gray-900 dark:text-white">
+                        <th scope="row" class="px-6 py-3 text-base">Всего</th>
+                        <td class="px-6 py-3">{{ orders_total_sum|floatformat:"0" }} руб</td>
+                    </tr>
+            </tfoot>
+    </table>
+    {% else %}
+        <p>У клиента нет заказов.</p>
+    {% endif %}
+
+    <div class="flex justify-between pb-30">
         <!-- Здесь добавьте поля для изменения информации о клиенте -->
-        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-    </form>
+        <a class="btn btn-primary  btn-block mb-3" href="{% url 'clients_list' %}">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-arrow-left" aria-hidden="true"></i>
+                 Вернуться к списку
+            </div>
+        </a>
+        {% if  request.user.is_staff %}
+            <a class="btn btn-danger mb-3" href="{% url 'client_delete' client.id%}">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-trash" aria-hidden="true"></i>
+                 Удалить
+            </div>
+            </a>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}

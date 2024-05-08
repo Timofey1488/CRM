@@ -83,3 +83,7 @@
         .custom-button:hover {
             background-color: #45a049; /* Темно-зеленый цвет */
         }
+
+.hover-border:hover td {
+    border: 1px solid black;
+}

@@ -7,27 +7,27 @@
                 <img id="logo" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
             </span>
         </div>
-        <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 ml-3 items-center text-center hover:border border-white rounded p-2">
+        <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 items-center hover:text-gray-400 text-center hover:border border-white rounded p-2">
             <div class="icon text-center">
-                 <i style="margin-right: 5px" class="fa fa-users" aria-hidden="true"></i>
+                 <i style="margin-right: 5px" class="pl-3 fa fa-users" aria-hidden="true"></i>
                 Клиенты
             </div>
         </a>
-        <a href="{% url 'dashboard' %}" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
+        <a href="{% url 'dashboard' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="icon">
-                <i style="margin-right: 5px" class="fa fa-th-large" aria-hidden="true"></i>
+                <i style="margin-right: 5px" class="pl-3 fa fa-th-large" aria-hidden="true"></i>
                  Доска заказов
             </div>
         </a>
-        <a href="{% url 'business_analytics' %}" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
+        <a href="{% url 'business_analytics' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="icon">
-                <i style="margin-right: 5px" class="fa fa-pie-chart" aria-hidden="true"></i>
+                <i style="margin-right: 5px" class="pl-3 fa fa-pie-chart" aria-hidden="true"></i>
                 Аналитика
             </div>
         </a>
-         <a href="#" class="menu-item flex ml-3 items-center hover:border border-white rounded p-2">
+         <a href="#" class="menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
              <div class="icon">
-                <i style="margin-right: 5px" class="fa fa-history" aria-hidden="true"></i>
+                <i style="margin-right: 5px" class="pl-3 fa fa-history" aria-hidden="true"></i>
                  Вся история
             </div>
         </a>
@@ -45,12 +45,12 @@
         <hr style="border-top: 2px solid white; margin: 0">
         <div class="pl-2 text-white text-center bottom-0 flex mt-0 menu-item rounded ">
             <!-- Cсылка на выход из аккаунта -->
+
             <a href="{% url 'user_logout' %}" class="menu-item flex rounded p-1">
              <div class="">
                 <i style="margin-right: 5px" class="fa fa-sign-out" aria-hidden="true"></i>
                  Выйти
-            </div>
-            </a>
+            </div></a>
         </div>
     </div>
 
