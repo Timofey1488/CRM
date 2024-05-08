@@ -1,9 +1,7 @@
-import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-
+from django.utils import timezone
 from core.enums.order_state import OrderState
 from core.enums.user_enum import UserRole
 from core.models.abstract_models import Base, BaseStatistics
@@ -12,19 +10,21 @@ from core.models.abstract_models import Base, BaseStatistics
 class User(AbstractUser):
     # Define the role
     role = models.CharField(max_length=50, choices=UserRole.choices, default=UserRole.CLIENT)
-
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
 
 
 class Client(Base):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=15, verbose_name="Phone Number")
-
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    phone = models.CharField(max_length=256, verbose_name="Phone Number")
+    full_name = models.CharField(max_length=256, verbose_name='Full name')
+    notes = models.CharField(max_length=256, verbose_name="Client Notes", null=True)
 
     def __str__(self):
-        return self.user.first_name + self.phone
+        return self.full_name + self.phone
+
+    class Meta:
+        # Уникальный индекс для комбинации first_name, last_name и phone
+        unique_together = [['full_name', 'phone']]
 
 
 class ClientStatistics(Base):
@@ -84,50 +84,23 @@ class Owner(Base):
 
 
 class Order(Base):
-    create_time = models.DateTimeField()
-    details = models.CharField(max_length=256, verbose_name="Notes")
+    date_accept = models.DateField(null=True, blank=True)
+    date_ready = models.DateTimeField(null=True, blank=True)
+    service_name = models.CharField(max_length=256, verbose_name="Service Name")
+    notes = models.CharField(max_length=256, verbose_name="Notes", null=True, blank=True)
     total_sum = models.DecimalField(validators=[MinValueValidator(0.00)],
                                     default=0,
                                     decimal_places=2,
                                     max_digits=9
                                     )
-    state = models.CharField(max_length=14,
+    state = models.CharField(max_length=20,
                              choices=[(state.value, state.name) for state in OrderState],
-                             default=OrderState.NONE.value
+                             default=OrderState.PLANNED.value
                              )
+    client = models.ForeignKey('Client', on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.create_time) + str(self.total_sum)
+        return str(self.date_accept) + " " + str(self.service_name) + str(self.total_sum) + 'руб'
 
 
-# IN PROCESS(NEED TO CHECK)
 
-class OrderService(Base):
-    quantity = models.IntegerField(default=1)
-
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    service = models.ForeignKey('Service', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Order: {self.order}, Service: {self.service}"
-
-
-class Service(Base):
-    service_name = models.CharField(max_length=100, verbose_name="Service name")
-    price = models.DecimalField(validators=[MinValueValidator(0.00)],
-                                default=0,
-                                decimal_places=2,
-                                max_digits=9
-                                )
-
-    def __str__(self):
-        return self.service_name
-
-
-class CategoryService(Base):
-    category_name = models.CharField(max_length=256, verbose_name="Category name")
-
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.category_name

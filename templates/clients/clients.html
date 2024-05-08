@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="mt-8 mb-4">
+     <h1 class="text-2xl font-semibold text-gray-700">Клиенты</h1>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+        <form method="post" action="{% url 'import_clients' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3 mt-3 d-flex align-items-center justify-content-end">
+                <div class="custom-file ">
+                    <input type="file" class="custom-file-input" id="customFile" name="files" multiple accept=".xlsx, .xls">
+                </div>
+                <button type="submit" class="btn btn-primary inline-flex align-items-center"><i style="margin-right: 5px" class="fa fa-upload" aria-hidden="true"></i>  Импортировать</button>
+            </div>
+        </form>
+      <form method="get" action="{% url 'clients_list' %}">
+        <div class="flex justify-between mb-4">
+           <div class="flex w-full fa-pen-to-square">
+                <input type="search" name="q" value="{{ query }}" placeholder="Поиск клиента..." class="border border-gray-200 px-4 py-2 mr-5 rounded w-full">
+                <button class="bg-blue-700 inline-flex align-items-center text-white px-4 rounded hover:bg-blue-600 py-2"><i style="margin-right: 5px" class="fa fa-search" aria-hidden="true"></i>  Найти</button>
+            </div>
+        </div>
+      </form>
+        <a class="btn btn-primary  btn-block mb-3" href="{% url 'create_client' %}">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-plus" aria-hidden="true"></i>
+                 Создать нового клиента
+            </div>
+        </a>
+        <table class="w-full border-collapse border border-gray-200">
+                {% if  client_objects %}
+                    <div class="d-flex justify-content-between">
+                        <h6>Всего клиентов: {{ clients.paginator.count }}</h6>
+                        {% if  request.user.is_staff %}
+                            <a href="{% url 'clients_delete_all' %}" class="text-red-500 hover:underline">Удалить всех</a>
+                        {% endif %}
+                    </div>
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border border-gray-200">ФИО</th>
+                            <th class="py-2 px-4 border border-gray-200">Телефон</th>
+                            <th class="py-2 px-4 border border-gray-200">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                     {% for client in client_objects %}
+                    <tr onclick="window.location='{% url 'client_details' client.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
+                        <td class="py-2 px-4 border border-gray-200">
+                            <a href="{% url 'client_details' client.id %}" class="text-black hover-border pr-5">
+                            {{ client.full_name }}</a>
+                        </td>
+                        <td class="py-2 px-4 border border-gray-200">{{ client.phone }}</td>
+                        <td class="py-2 px-4 border d-flex justify-content-end border-gray-200">
+                            <a href="{% url 'client_edit_info' client.id %}" class="text-blue-500 hover:underline pr-5">Изменить</a>
+                            {% if  request.user.is_staff %}
+                                <a href="{% url 'client_delete' client.id %}" class="text-red-500 hover:underline">Удалить</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                {% else %}
+                     <p>Пока что нет клиентов.</p>
+             {% endif %}
+            </tbody>
+        </table>
+
+
+        <!-- Добавляем разметку для пагинации -->
+        {% if clients.has_other_pages %}
+        <div class="pagination mt-3 d-flex justify-content-center">
+            <span class="step-links">
+                {% if clients.has_previous %}
+                    <a href="?page={{ clients.previous_page_number }}">Предыдущая</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ clients.number }} из {{ clients.paginator.num_pages }}.
+                </span>
+
+                {% if clients.has_next %}
+                    <a href="?page={{ clients.next_page_number }}">Следующая</a>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+<style>
+.hover\:bg-gray-100:hover {
+    background-color: #f3f4f6 !important;
+}
+</style>
