@@ -1,37 +1,143 @@
 {% load static %}
 {% if request.user.is_authenticated %}
-<div id="sidebar" class="flex flex-col h-screen justify-between">
-    <div id="menuItems ">
+
+<nav id="mainNav" class="w-full flex items-center justify-between flex-wrap bg-gray-800 p-6 lg:hidden">
+      <div>
+          <button id="mobileMenuButton" class="flex items-center bg-gray-800 px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
+                <svg class="fill-current h-6 w-6" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
+          </button>
+      </div>
+      <div class="flex items-center flex-shrink-0 text-white ">
+            <span><a href="{% url 'home' %}">
+                <img id="logo-mobile" class="h-10 w-15" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
+            </span>
+        </div>
+</nav>
+<div id="navBarMobile" class=" fixed z-50 top-20 left-0 w-full flex flex-col hidden justify-between lg:hidden">
+    <div id="menuItems-mobile" class="flex flex-col" >
+
+        <a href="{% url 'clients_list' %}" class=" menu-item flex mt-5 items-center hover:text-gray-400 text-center hover:border border-white rounded p-2">
+            <div class="pl-5 icon text-center">
+                 <i style="margin-right: 5px" class="pl-3 fa fa-users" aria-hidden="true"></i>
+                Клиенты
+            </div>
+        </a>
+          <hr  style="w-full border: 2px solid white; margin: 0">
+        <a href="{% url 'dashboard' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
+             <div class="pl-5 icon">
+                <i style="margin-right: 5px" class="pl-3 pr-1 fa-regular fa-calendar-days"></i>
+                 Доска заказов
+            </div>
+        </a>
+         <hr style="w-full border: 3px solid white; margin: 0">
+        <a href="{% url 'business_analytics' %}" class=" menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
+             <div class="pl-5 icon">
+                <i style="margin-right: 5px" class="pl-2 pr-1 fa fa-pie-chart" aria-hidden="true"></i>
+                Аналитика
+            </div>
+        </a>
+         <hr style="w-full border: 2px solid white; margin: 0">
+         {% if request.user.is_staff %}
+             <a href="{% url 'workers_list'%}" class="menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
+                 <div class="pl-5 icon">
+                    <i style="margin-right: 5px" class="pl-3 pr-1 fa fa-male" aria-hidden="true"></i>
+                     Работники
+                </div>
+            </a>
+         <hr style="w-full border: 2px solid white; margin: 0">
+        {% endif %}
+         <a href="{% url 'order_history' %}" class=" menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
+             <div class="pl-5 icon">
+                <i style="margin-right: 5px" class="pl-3 fa fa-history" aria-hidden="true"></i>
+                 Вся история
+            </div>
+        </a>
+         <hr style="w-full border: 2px solid white; margin: 0">
+    </div>
+    <div>
+        <div class=" text-white bottom-0 flex justify-between rounded menu-item pb-3 pt-3 pl-5">
+          <a href="{% url 'user_logout' %}" class=" text-white text-decoration-none flex  hover:border border-white  ">
+             <div class="m-0">
+
+                  {{ request.user.first_name }} {{ request.user.last_name }}
+            </div>
+          </a>
+             <hr style="w-full border: 2px solid white; margin: 0">
+      </div>
+        <hr style="border-top: 2px solid white; margin: 0">
+        <div class="pl-5  text-white bottom-0 flex justify-between rounded menu-item">
+            <!-- Cсылка на выход из аккаунта -->
+
+            <a href="{% url 'user_logout' %}" class="text-white text-decoration-none flex  hover:border border-white  ">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-sign-out" aria-hidden="true"></i>
+                 Выйти
+            </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+<div id="sidebar" class="flex flex-col h-screen justify-between lg:flex lg:items-center lg:w-auto hidden">
+    <div id="menuItems" >
         <div class="flex items-center flex-shrink-0 text-white ">
             <span><a href="{% url 'home' %}">
                 <img id="logo" src="{% static 'img/cava_logo.png' %}" alt="Logo"></a>
             </span>
         </div>
+
         <a href="{% url 'clients_list' %}" class="menu-item flex mt-10 items-center hover:text-gray-400 text-center hover:border border-white rounded p-2">
             <div class="icon text-center">
                  <i style="margin-right: 5px" class="pl-3 fa fa-users" aria-hidden="true"></i>
                 Клиенты
             </div>
         </a>
-        <a href="{% url 'dashboard' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
+
+         {% if request.user.is_staff%}
+         <a href="{% url 'dashboard' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="icon">
-                <i style="margin-right: 5px" class="pl-3 fa fa-th-large" aria-hidden="true"></i>
+                <i style="margin-right: 5px" class="pl-3 pr-1 fa-regular fa-calendar-days"></i>
                  Доска заказов
             </div>
         </a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
+                 <div class="icon">
+                     <i style="margin-right: 5px" class="pl-3 pr-1 fa-regular fa-calendar-days"></i>
+                    Мои заказы
+                </div>
+            </a>
+        {% endif %}
+
+        {% if request.user.is_staff%}
         <a href="{% url 'business_analytics' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="icon">
-                <i style="margin-right: 5px" class="pl-3 fa fa-pie-chart" aria-hidden="true"></i>
+                <i style="margin-right: 5px" class="pl-2 pr-1 fa fa-pie-chart" aria-hidden="true"></i>
                 Аналитика
             </div>
         </a>
-         <a href="#" class="menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
+        {% else %}
+        <a href="{% url 'business_analytics' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
+             <div class="icon">
+                <i style="margin-right: 5px" class="pl-2 pr-1 fa fa-pie-chart" aria-hidden="true"></i>
+                Моя статистика
+            </div>
+        </a>
+        {% endif %}
+         {% if request.user.is_staff %}
+             <a href="{% url 'workers_list'%}" class="menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
+                 <div class="icon">
+                    <i style="margin-right: 5px" class="pl-3 pr-1 fa fa-male" aria-hidden="true"></i>
+                     Работники
+                </div>
+            </a>
+        {% endif %}
+         <a href="{% url 'order_history' %}" class="menu-item flex  items-center hover:border hover:text-gray-400 border-white rounded p-2">
              <div class="icon">
                 <i style="margin-right: 5px" class="pl-3 fa fa-history" aria-hidden="true"></i>
                  Вся история
             </div>
         </a>
-
     </div>
     <div >
         <div class=" text-white bottom-0 flex justify-between rounded menu-item pb-3 pt-3">
@@ -56,4 +162,12 @@
 
 </div>
 {% endif %}
+<script>
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const navBarMobile = document.getElementById("navBarMobile");
+
+    mobileMenuButton.addEventListener("click", () => {
+        navBarMobile.classList.toggle("hidden");
+    });
+</script>
 

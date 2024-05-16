@@ -1,23 +1,269 @@
-{% extends 'core/base.html' %}
-{% load static %}
-{% block content %}
-        <h1 class="text-2xl mt-4 font-semibold text-gray-700">Доска заказов</h1>
-    <hr class="border-b-2 border-gray-300 my-2 mb-10">
-    {% include 'dashboard/status.html' %}
-    <div class="col">
-        <div class="col-md">
-            <div class="card card_body">
-                <a class="btn btn-primary  btn-block " href="">Создать новый заказ</a>
-                <table class="table table-sm mt-2">
-                    <tr>
-                        <th>Название</th>
-                        <th>Дата заказа</th>
-                        <th>Исполнитель</th>
-                        <th>Статус</th>
-                    </tr>
+{% extends "core/base.html" %}
 
-                </table>
-            </div>
-        </div>
+{% block head_title %}Календарь{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Общие стили */
+    body, html {
+        height: 100%;
+        margin: 0;
+    }
+    #calendar-container {
+        display: flex;
+        height: 100vh; /* Full viewport height */
+         margin-right: -85px;
+    }
+    #calendar {
+        flex-grow: 1;
+        overflow: auto; /* Allow calendar to use remaining space and scroll if needed */
+        padding: 20px;
+    }
+    #order-list {
+        width: 350px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        padding: 20px;
+        border-left: 1px solid #ddd;
+        background: #fff;
+        position: sticky;
+        top: 0;
+        bottom: 0;
+    }
+    .order-item {
+        background: #f9f9f9;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+    }
+    .urgent {
+        border: 1px solid red !important;
+        background-color: #ffe6e6 !important;
+    }
+    .fc a {
+        text-decoration:none !important;
+        color: black !important; /* Change text color to black */
+    }
+    .fc-content {
+        color: black !important; /* Change text color to black */
+    }
+    .btn-edit,
+    .btn-delete {
+        background-color: #4CAF50; /* Green */
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background-color: #008CBA; /* Blue */
+    }
+
+    .btn-delete {
+        background-color: #f44336; /* Red */
+    }
+
+    .btn-edit:hover,
+    .btn-delete:hover {
+        background-color: #3e8e41;
+    }
+    .high-activity {
+    background-color: red !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="calendar-container">
+    <div id='calendar'></div>
+    <div id='order-list' class="p-4 bg-gray-100 rounded shadow-md">
+        <h2 class="text-xl font-bold mb-4">Информация о заказах</h2>
+        <p id="selected-date">Выберите дату для просмотра заказов.</p>
     </div>
-{% endblock content %}
+</div>
+{% endblock %}
+
+{% block extrascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var orderListEl = document.getElementById('order-list');
+        var selectedDateEl = document.getElementById('selected-date');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: '/orders/',
+            dateClick: function(info) {
+                selectedDateEl.innerText = 'Выбранная дата: ' + info.dateStr;
+                fetchOrders(info.dateStr);
+            },
+            eventClick: function(info) {
+                alert('Услуга: ' + info.event.title + '\nЗаметки: ' + info.event.extendedProps.notes);
+            },
+            eventContent: function(arg) {
+                let content = document.createElement('div');
+                let textNode = document.createTextNode(arg.event.title);
+                content.appendChild(textNode);
+                if (arg.event.extendedProps.isUrgent) {
+                    content.style.backgroundColor = '#ffe6e6';
+                    content.style.color = 'black';
+                    content.style.border = '1px solid red';
+                }
+                else {
+                    content.style.backgroundColor = '#3788d8';
+                    content.style.color = 'white';
+                    content.style.border = '1px solid #3788d8';
+                }
+                return { domNodes: [content] };
+            },
+           dayCellContent: function(arg) {
+
+            const dateStr = arg.date.getFullYear() + '-' + ('0' + (arg.date.getMonth() + 1)).slice(-2) + '-' + ('0' + arg.date.getDate()).slice(-2);
+
+            // Запрос к серверу для получения списка заказов для данной даты
+            fetch('/orders?date=' + dateStr)
+                .then(response => response.json())
+                .then(data => {
+                    // Проверка условий и установка класса для ячейки календаря
+                    const totalSum = data.reduce((acc, curr) => acc + parseFloat(curr.totalSum), 0);
+                    if (data.length > 3 || totalSum > 300) {
+                        const el = arg.el;
+                        if (el) {
+                            el.classList.add('high-activity'); // Добавляем класс "high-activity"
+                        }
+                    }
+                })
+                .catch(error => console.error('Ошибка:', error));
+        }
+        });
+
+        calendar.render();
+
+        function fetchOrders(date) {
+            fetch('/orders?date=' + date)
+                .then(response => response.json())
+                .then(data => {
+                    // Сортируем заказы, чтобы срочные были первыми
+                    data.sort((a, b) => b.isUrgent - a.isUrgent);
+
+                    orderListEl.innerHTML = `<h3 class="font-bold text-lg mb-2">Заказы на ${date}</h3>`;
+                    if (data.length === 0) {
+                        orderListEl.innerHTML += '<p>На этот день заказов нет.</p>';
+                    } else {
+                        data.forEach(order => {
+                            const orderItem = document.createElement('div');
+                            orderItem.className = 'order-item';
+                            if (order.isUrgent) {
+                                orderItem.classList.add('urgent');
+                            }
+                            const totalSumFormatted = parseFloat(order.totalSum).toLocaleString('ru-RU', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 2
+                            });
+                            orderItem.innerHTML = `
+                                <h4>${order.isUrgent ? '🔥 ' : ''}${order.title}</h4>
+                                <div class="ml-3" style="line-height: 0.7;">
+                                    <p>№: <b>${order.id}</b></p>
+                                    <p>Принято: ${new Date(order.date_accept).toLocaleDateString()}</p>
+                                    <p>Поставлено на: ${order.start ? new Date(order.start).toLocaleDateString() : 'Не указано'}</p>
+                                    <p>Сумма: ${totalSumFormatted} руб</p>
+                                    ${order.worker ? `<p>Выполняет: ${order.worker.first_name} ${order.worker.last_name}</p>` : ''}
+                                    <p>${order.notes}</p>
+                                    <button class="btn-edit" data-order-id="${order.id}">Изменить</button>
+                                    <button class="btn-delete" data-order-id="${order.id}">Удалить</button>
+                                </div>
+
+                            `;
+                             // Обработчик для кнопки "Удалить"
+                            orderItem.querySelector('.btn-delete').addEventListener('click', function() {
+                                const orderId = this.getAttribute('data-order-id');
+                                if (confirm('Вы уверены, что хотите удалить этот заказ?')) {
+                                    fetch(`/orders/delete/${orderId}/`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF-токен из cookie
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            throw new Error('Ошибка удаления заказа');
+                                        }
+                                        return response.json();
+                                    })
+                                    .then(data => {
+                                        // Обрабатываем успешный ответ
+                                        if (data.success) {
+                                            alert('Заказ успешно удален');
+                                            // Обновляем страницу или список заказов
+                                            location.reload();
+                                        } else {
+                                            alert('Ошибка удаления заказа: ' + data.error);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Ошибка удаления заказа:', error.message);
+                                        alert('Ошибка удаления заказа');
+                                    });
+                                }
+                            });
+                            orderListEl.appendChild(orderItem);
+                        });
+
+                        // Attach event listeners to edit and delete buttons
+                        orderListEl.querySelectorAll('.btn-edit').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const orderId = this.getAttribute('data-order-id');
+                                // Call a function to handle editing order with orderId
+                                // You can implement this function according to your needs
+                                editOrder(orderId);
+                            });
+                        });
+
+                        orderListEl.querySelectorAll('.btn-delete').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const orderId = this.getAttribute('data-order-id');
+                                // Call a function to handle deleting order with orderId
+                                // You can implement this function according to your needs
+                                deleteOrder(orderId);
+                            });
+                        });
+                    }
+                })
+                .catch(error => console.error('Ошибка:', error));
+        }
+
+        function editOrder(orderId) {
+            // Implement functionality to edit order with given orderId
+            console.log('Edit order with ID:', orderId);
+        }
+
+        // Функция для получения CSRF-токена из cookie
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+    }
+
+    });
+
+
+
+</script>
+{% endblock %}

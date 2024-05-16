@@ -6,7 +6,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 
-from CRM.models import User, Client, Order
+from CRM.models import User, Client, Order, Worker
 from core.enums.order_state import OrderState
 from core.enums.user_enum import UserRole
 
@@ -120,7 +120,7 @@ class OrderCreateForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields = ['date_accept', 'date_ready', 'service_name', 'notes', 'total_sum', 'state']
+        fields = ['date_accept', 'date_ready', 'service_name', 'notes', 'total_sum', 'state', 'is_urgent']
         labels = {
             'date_accept': 'Дата принятия',
             'date_ready': 'Дата готовности',
@@ -128,6 +128,7 @@ class OrderCreateForm(forms.ModelForm):
             'notes': 'Заметки',
             'total_sum': 'Сумма заказа',
             'state': 'Статус',
+            'is_urgent': 'Срочный',
         }
         widgets = {
             'date_accept': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -136,6 +137,7 @@ class OrderCreateForm(forms.ModelForm):
             'notes': forms.TextInput(attrs={'class': 'form-control', 'required': False}),
             'total_sum': forms.NumberInput(attrs={'class': 'form-control'}),
             'state': forms.Select(attrs={'class': 'form-control'}),
+            'is_urgent': forms.CheckboxInput(attrs={'class': 'form-checkbox h-5 w-5 text-indigo-600'}),
         }
         required = {
             'notes': False,
@@ -147,6 +149,45 @@ class OrderCreateForm(forms.ModelForm):
         if notes is None:
             return ''
         return notes
+
+
+class WorkerForm(forms.ModelForm):
+    # Поля пользователя
+    username = forms.CharField(label='Логин', max_length=150)
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
+    first_name = forms.CharField(label='Имя', max_length=30)
+    last_name = forms.CharField(label='Фамилия', max_length=30)
+
+    # Поля работника
+    phone = forms.CharField(label='Телефон', max_length=15)
+    position = forms.CharField(label='Должность', max_length=30)
+    hire_date = forms.DateField(label='Дата найма')
+
+    class Meta:
+        model = Worker
+        fields = ['phone', 'position', 'hire_date']
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Это имя пользователя уже занято.")
+        return username
+
+    def save(self, commit=True):
+        # Сохранение пользователя
+        user = User.objects.create_user(
+            username=self.cleaned_data['username'],
+            password=self.cleaned_data['password'],
+            role=UserRole.WORKER,
+            first_name=self.cleaned_data['first_name'],
+            last_name=self.cleaned_data['last_name']
+        )
+        # Сохранение работника
+        worker = super().save(commit=False)
+        worker.user = user
+        if commit:
+            worker.save()
+        return worker
 
 
 class ChangePasswordForm(forms.Form):

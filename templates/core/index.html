@@ -3,13 +3,169 @@
 {% block head_title %}Ca Va CRM{% endblock %}
 
 {% block content %}
-    <div class="container flex flex-col my-12 my-24">
+    <div class="container flex flex-col my-12">
     <!--Left Col-->
-    <div class="flex flex-col items-start pb-24 px-6">
-        <h1 class="font-bold text-4xl my-4">Ca Va CRM</h1>
-            <p class="leading-normal mb-4">
-                WELCOME to the CRM
-            </p>
+    <div class="flex flex-col pb-24">
+        <h1 class="font-bold text-3xl my-3">Приветствую,  {{ request.user.first_name }}</h1>
+         <!-- Блок с аналитикой за день -->
+         {% if request.user.is_staff %}
+         <div class="flex flex-wrap mt-10">
+               <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                <div class="bg-yellow-300 shadow-md rounded-lg p-4 shadow-md rounded-lg transition duration-300 hover:bg-yellow-400">
+                    <h2 class="text-xl">Активные заказы</h2>
+                  <p class="m-0 text-black-600 flex items-center">
+                        <i class="fa pt-1 fa fa-check-square text-green-600" aria-hidden="true" style="font-size: 25px;"></i>
+                        <span class="fs-1 pl-2">
+                            {{ active_orders }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+         {% else %}
+              <div class="flex flex-wrap mt-10">
+               <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                <div class="bg-yellow-300 shadow-md rounded-lg p-4 shadow-md rounded-lg transition duration-300 hover:bg-yellow-400">
+                    <h2 class="text-xl">Активные мои заказы</h2>
+                  <p class="m-0 text-black-600 flex items-center">
+                        <i class="fa pt-1 fa fa-check-square text-green-600" aria-hidden="true" style="font-size: 25px;"></i>
+                        <span class="fs-1 pl-2">
+                            {{ active_orders_worker }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+         {% endif %}
+
+               {% if request.user.is_staff %}
+            <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                <div class="bg-blue-200 shadow-md rounded-lg p-4 shadow-md rounded-lg transition duration-300 hover:bg-blue-300">
+                    <h2 class="text-xl">Заказов сегодня</h2>
+                  <p class="m-0 text-black-600 flex items-center">
+                      <span class="flex items-center justify-center h-6 mt-1 w-12 bg-blue-500 rounded-md text-white">
+                            New
+                      </span>
+                        <span class="fs-1 pl-2">
+                            {{ orders_today_count }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+               {% else %}
+                  <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                    <div class="bg-blue-200 shadow-md rounded-lg p-4 shadow-md rounded-lg transition duration-300 hover:bg-blue-300">
+                        <h2 class="text-xl">Заказы на сегодня</h2>
+                      <p class="m-0 text-black-600 flex items-center">
+                          <span class="flex items-center justify-center h-6 mt-1 w-12 bg-blue-500 rounded-md text-white">
+                                New
+                          </span>
+                            <span class="fs-1 pl-2">
+                                {{ orders_today_worker_count }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+               {% endif %}
+                  {% if request.user.is_staff %}
+                   <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                        <div class="bg-red-300 shadow-md rounded-lg p-4 transition duration-300 hover:bg-red-400">
+                            <h2 class="text-xl font-semibold">Срочные</h2>
+                             <p class="m-0 text-black-600 flex items-center">
+                                <i class=" pt-1 fa-solid fa-fire fa-lg text-red-600" aria-hidden="true" style="font-size: 25px;"></i>
+                                <span class="fs-1 pl-2">
+                                    {{ is_urgent_count }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                  {% else %}
+                   <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                <div class="bg-red-300 shadow-md rounded-lg p-4 transition duration-300 hover:bg-red-400">
+                    <h2 class="text-xl font-semibold">Срочные</h2>
+                     <p class="m-0 text-black-600 flex items-center">
+                        <i class=" pt-1 fa-solid fa-fire fa-lg text-red-600" aria-hidden="true" style="font-size: 25px;"></i>
+                        <span class="fs-1 pl-2">
+                            {{ is_urgent_worker_count }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+                  {% endif %}
+                  {% if request.user.is_staff %}
+                <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                    <div class="bg-orange-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-orange-300">
+                        <h2 class="text-xl font-semibold">Просроченные</h2>
+                         <p class="m-0 text-black-600 flex items-center">
+                            <i class="fa pt-1 fa-clock-o fa-lg text-orange-600" aria-hidden="true" style="font-size: 30px;"></i>
+                            <span class="fs-1 pl-2">
+                                {{ overdue_orders_count }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                  {% else %}
+               <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/3 p-2">
+                    <div class="bg-orange-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-orange-300">
+                        <h2 class="text-xl font-semibold">Просроченные</h2>
+                         <p class="m-0 text-black-600 flex items-center">
+                            <i class="fa pt-1 fa-clock-o fa-lg text-orange-600" aria-hidden="true" style="font-size: 30px;"></i>
+                            <span class="fs-1 pl-2">
+                                {{ overdue_orders_worker_count }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                  {% endif %}
+                  {% if request.user.is_staff %}
+                <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/2 p-2">
+                    <div class="bg-purple-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-purple-300">
+                        <h2 class="text-xl font-semibold">Ждут оплаты</h2>
+                         <p class="m-0 text-black-600 flex items-center">
+                            <i class="fa pt-2 fa-money fa-lg text-green-500" aria-hidden="true" style="font-size: 30px;"></i>
+                            <span class="fs-1 pl-2">
+                                {{ waiting_pay_count }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                  {% else %}
+                    <div class="w-full sm:w-1/1 md:w-1/2 lg:w-1/2 p-2">
+                    <div class="bg-purple-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-purple-300">
+                        <h2 class="text-xl font-semibold">Ждут оплаты</h2>
+                         <p class="m-0 text-black-600 flex items-center">
+                            <i class="fa pt-2 fa-money fa-lg text-green-500" aria-hidden="true" style="font-size: 30px;"></i>
+                            <span class="fs-1 pl-2">
+                                {{ waiting_pay_worker_count }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                  {% endif %}
+                  {% if request.user.is_staff %}
+                <div class="w-full sm:w-full md:w-1/2 lg:w-full p-2">
+                    <div class="bg-green-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-green-300">
+                        <h2 class="text-xl font-semibold">Заказов сегодня на сумму</h2>
+                         <p class="m-0 text-black-600 flex items-center">
+                            <i class="pt-2 fa-solid fa-sack-dollar fa-lg text-green-500" aria-hidden="true" style="font-size: 30px;"></i>
+                            <span class="fs-1 pl-2">
+                                {{ sum_of_orders_today }} р.
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                  {% else %}
+                   <div class="w-full sm:w-full md:w-1/2 lg:w-full p-2">
+                <div class="bg-green-200 shadow-md rounded-lg p-4 transition duration-300 hover:bg-green-300">
+                    <h2 class="text-xl font-semibold">Заказов сегодня на сумму</h2>
+                     <p class="m-0 text-black-600 flex items-center">
+                        <i class="pt-2 fa-solid fa-sack-dollar fa-lg text-green-500" aria-hidden="true" style="font-size: 30px;"></i>
+                        <span class="fs-1 pl-2">
+                            {{ sum_of_orders_worker_today}} р.
+                        </span>
+                    </p>
+                </div>
+            </div>
+                  {% endif %}
+    </div>
 
             <div>
             </div>

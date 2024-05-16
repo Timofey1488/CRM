@@ -4,9 +4,10 @@ from django.contrib.auth.views import PasswordResetCompleteView, PasswordResetCo
 from django.urls import path
 
 from CRM import views
-from CRM.views import HomeView, ClientsList, dashboard, AccountLoginView, BusinessAnalytics, LogoutView, \
+from CRM.views import HomeView, ClientsList, AccountLoginView, BusinessAnalytics, LogoutView, \
     registration_view, ClientDetailView, ClientDeleteView, ClientsDeleteView, CreateClientView, ClientEditView, \
-    ClientCreateOrder, ClientOrderEditView, OrderDeleteView
+    ClientCreateOrder, ClientOrderEditView, OrderDeleteView, HistoryView, WorkersList, CreateWorkerView, \
+    WorkerDeleteView, OrderListView, DashboardView, OrderDashboardDeleteView, delete_order, OrderHistoryByDayListView
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -20,9 +21,16 @@ urlpatterns = [
     path('clients/<int:pk>/order_update/', ClientOrderEditView.as_view(), name='client_update_order'),
     path('clients/<int:pk>/delete/', ClientDeleteView.as_view(), name='client_delete'),
     path('orders/clients/delete_order/<int:pk>', OrderDeleteView.as_view(), name='order_delete'),
+    path('orders/', OrderListView.as_view(), name='orders_list'),
     path('clients/delete_all', ClientsDeleteView.as_view(), name='clients_delete_all'),
     path('clients/create_new', CreateClientView.as_view(), name='create_client'),
-    path('dashboard/', dashboard, name='dashboard'),
+    path('workers/', WorkersList.as_view(), name='workers_list'),
+    path('workers/create_new', CreateWorkerView.as_view(), name='create_worker'),
+    path('workers/<int:pk>/delete/', WorkerDeleteView.as_view(), name='worker_delete'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('orders/delete/<int:order_id>/', delete_order, name='delete_order'),
+    path('dashboard/delete_order/<int:pk>', OrderDashboardDeleteView.as_view(), name='dashboard_delete_order'),
+    path('history/', OrderHistoryByDayListView.as_view(), name='order_history'),
     path('login/', AccountLoginView.as_view(), name='login'),
     path(
         "logout/", LogoutView.as_view(),

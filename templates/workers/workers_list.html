@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="mt-8 mb-4">
+     <h1 class="text-2xl font-semibold text-gray-700">Работники</h1>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+
+        <a class="btn btn-primary  btn-block mb-3" href="{% url 'create_worker' %}">
+             <div class="">
+                <i style="margin-right: 5px" class="fa fa-plus" aria-hidden="true"></i>
+                 Работник
+            </div>
+        </a>
+        <div class="overflow-x-auto">
+        <table class="w-full border-collapse border border-gray-200">
+                {% if  workers_list %}
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border border-gray-200">Работник</th>
+                            <th class="py-2 px-4 border border-gray-200">Дата приема на работу</th>
+                            <th class="py-2 px-4 border border-gray-200">Позиция</th>
+                            <th class="py-2 px-4 border border-gray-200">Email</th>
+                            <th class="py-2 px-4 border border-gray-200">Телефон</th>
+                            <th class="py-2 px-4 border border-gray-200">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                     {% for worker in workers_list %}
+                    <tr onclick="window.location='#';" class="cursor-pointer  hover:bg-gray-300 hover-border">
+                        <td class="py-2 px-4 border border-gray-200">
+                            <a href="#" class="text-black hover-border pr-5">
+                            {{ worker.user.first_name }} {{ worker.user.last_name }}</a>
+                        </td>
+                        <td class="py-2 px-4 border border-gray-200">{{ worker.hire_date }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ worker.position }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ worker.user.email }}</td>
+                        <td class="py-2 px-4 border border-gray-200">{{ worker.phone }}</td>
+                        <td class="py-2 px-4 border d-flex justify-content-end border-gray-200">
+                            <a href="#" class="text-blue-500 hover:underline pr-5">Изменить</a>
+                            {% if  request.user.is_staff %}
+                                <a href="{% url 'worker_delete' worker.id %}" class="text-red-500 hover:underline">Удалить</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                {% else %}
+                     <p>У вас пока что нету работников.</p>
+             {% endif %}
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+{% endblock %}

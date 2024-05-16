@@ -24,9 +24,11 @@
             </a>
     </div>
     {% if active_orders %}
+    <div class="overflow-x-auto">
         <table class="w-full border-collapse border border-gray-200">
             <thead class="bg-gray-100">
                 <tr>
+                     <th class="py-2 px-4 border border-gray-200">Номер</th>
                     <th class="py-2 px-4 border border-gray-200">Услуга</th>
                     <th class="py-2 px-4 border border-gray-200">Сумма</th>
                     <th class="py-2 px-4 border border-gray-200">Дата принятия</th>
@@ -38,7 +40,8 @@
             <tbody>
                 {% for order in active_orders %}
                     <tr onclick="window.location='{% url 'client_update_order' order.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
-                        <td class="py-2 px-4 border border-gray-200">{{ order.service_name }}</td>
+                        <th class="py-2 px-4 border border-gray-200">{{ order.id }}</th>
+                        <td class="py-2 px-4 border border-gray-200">{% if order.is_urgent%}<span><i class="text-red-500 fa-solid fa-fire"></i></span>{% endif %} {{ order.service_name }}</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.date_accept|date:"DATE_FORMAT" }}</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
@@ -48,6 +51,7 @@
                 {% endfor %}
             </tbody>
     </table>
+    </div>
     {% else %}
         <p>У клиента нет активных заказов.</p>
     {% endif %}
@@ -55,9 +59,11 @@
 
     <h4 class="mt-10">Заказы клиента:</h4>
    {% if orders %}
+    <div class="overflow-x-auto">
     <table class="w-full border-collapse border border-gray-200 mb-10">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="py-2 px-4 border border-gray-200">Номер</th>
                     <th class="py-2 px-4 border border-gray-200">Услуга</th>
                     <th class="py-2 px-4 border border-gray-200">Сумма</th>
                     <th class="py-2 px-4 border border-gray-200">Дата принятия</th>
@@ -69,7 +75,8 @@
             <tbody>
                 {% for order in orders %}
                     <tr onclick="window.location='{% url 'client_update_order' order.id %}';" class="cursor-pointer  hover:bg-gray-300 hover-border">
-                        <td class="py-2 px-4 border border-gray-200">{{ order.service_name }}</td>
+                        <th class="py-2 px-4 border border-gray-200">{{ order.id }}</th>
+                        <td class="py-2 px-4 border border-gray-200">{% if order.is_urgent%}<span><i class="text-red-500 fa-solid fa-fire"></i></span>{% endif %} {{ order.service_name }}</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.date_accept|date:"DATE_FORMAT" }}</td>
                         <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
@@ -80,11 +87,13 @@
             </tbody>
             <tfoot>
                     <tr class="font-semibold text-gray-900 dark:text-white">
+                        <th scope="row" class="px-3 py-2 text-base"></th>
                         <th scope="row" class="px-6 py-3 text-base">Всего</th>
                         <td class="px-6 py-3">{{ orders_total_sum|floatformat:"0" }} руб</td>
                     </tr>
             </tfoot>
     </table>
+    </div>
     {% else %}
         <p>У клиента нет заказов.</p>
     {% endif %}

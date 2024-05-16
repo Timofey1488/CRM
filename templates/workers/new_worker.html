@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mx-auto">
+    <h1 class="text-2xl mt-4 font-semibold text-gray-700">Создание нового работника</h1>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+    <form method="post" action="{% url 'create_worker' %}" class="max-w-md">
+        {% csrf_token %}
+        <div class="mb-2">
+            <label for="{{ form.username.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Логин</label>
+            <input type="text" id="id_username" name="username" required placeholder="Введите логин" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.username.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.username.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.password.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Пароль</label>
+            <input type="password" id="id_password" name="password" required placeholder="Введите пароль" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.password.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.password.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.first_name.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Имя</label>
+            <input type="text" id="id_first_name" name="first_name" required placeholder="Введите имя" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.first_name.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.first_name.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.last_name.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Фамилия</label>
+            <input type="text" id="id_last_name" name="last_name" required placeholder="Введите фамилию" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.last_name.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.last_name.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.phone.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Телефон</label>
+            <input type="text" id="id_phone" name="phone" required placeholder="Введите телефон" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.phone.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.phone.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.position.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Должность</label>
+            <input type="text" id="id_position" name="position" required placeholder="Введите должность" class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.position.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.position.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-2">
+            <label for="{{ form.hire_date.id_for_label }}" class="block text-gray-700 text-md font-bold mb-2">Дата найма</label>
+            <input type="date" id="id_hire_date" name="hire_date" required class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {% if form.hire_date.errors %}
+                <div class="text-red-500 mt-1">
+                    {% for error in form.hire_date.errors %}
+                        <p class="alert alert-danger" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 mb-10 rounded-md hover:bg-blue-600">Создать</button>
+    </form>
+</div>
+{% endblock %}

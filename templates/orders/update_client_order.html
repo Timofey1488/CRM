@@ -40,6 +40,10 @@
             <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-gray-700">Статус</label>
             {{ form.state|add_class:"form-select block w-full sm:text-sm sm:leading-5 rounded-md" }}
         </div>
+         <div>
+            <label for="{{ form.is_urgent.id_for_label }}" class="block text-sm font-medium text-gray-700">Срочный</label>
+            {{ form.is_urgent|add_class:"form-checkbox block mt-2 mb-2 sm:text-sm sm:leading-5 rounded-md" }}
+        </div>
         <div class="flex justify-between">
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Обновить</button>
             <a  href="{% url 'client_details' client.id %}" class="btn btn-outline-primary">Вернуться</a>

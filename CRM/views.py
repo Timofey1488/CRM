@@ -1,7 +1,9 @@
 import json
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 
+from django.db.models.functions import TruncDay
 from django.utils import timezone
 
 from django.contrib import messages
@@ -9,18 +11,20 @@ from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView
 from django.core.paginator import PageNotAnInteger, Paginator, EmptyPage
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count, When, Value, CharField, Case
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy, reverse
+from django.utils.dateparse import parse_date
 from django.utils.timezone import make_aware
 from django.views import View
-from django.views.generic import TemplateView, RedirectView, DetailView, DeleteView, CreateView, UpdateView
+from django.views.generic import TemplateView, RedirectView, DetailView, DeleteView, CreateView, UpdateView, ListView
 
 from core.enums.order_state import OrderState
+from core.enums.user_enum import UserRole
 from core.scripts.parser_exel_files import parse_excel
-from .forms import RegistrationForm, ClientForm, ClientEditForm, OrderCreateForm
-from .models import Client, Order
+from .forms import RegistrationForm, ClientForm, ClientEditForm, OrderCreateForm, WorkerForm
+from .models import Client, Order, Worker, User
 
 
 def registration_view(request):
@@ -56,6 +60,72 @@ class LogoutView(RedirectView):
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'core/index.html'
     login_url = reverse_lazy('login')  # Укажите URL для страницы входа
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Order.objects.filter(Q(date_accept__icontains=query) | Q(phone__icontains=query)).order_by('id')
+        else:
+            return Client.objects.all().order_by('id')
+
+    def get_context_data(self, **kwargs):
+        global active_orders_worker, orders_today_worker_count, overdue_orders_worker_count, is_urgent_worker_count, waiting_pay_worker_count, sum_of_orders_worker_today
+        today = date.today()
+        now = datetime.now()
+        context = super().get_context_data(**kwargs)
+        active_orders = Order.objects.filter(state=OrderState.IN_PROGRESS.value).count()
+        orders_today_count = Order.objects.filter(date_accept=today).count()
+        overdue_orders_count = Order.objects.filter(
+            Q(date_ready__lt=now) |
+            Q(date_ready=now, date_ready__time__lt=now.time()),
+            state=OrderState.IN_PROGRESS.value
+        ).count()
+        is_urgent_count = Order.objects.filter(is_urgent=True, state=OrderState.IN_PROGRESS.value).count()
+        waiting_pay_count = Order.objects.filter(state=OrderState.COMPLETED_BUT_NOT_PAID.value).count()
+        sum_of_orders_today = Order.objects.filter(date_accept=today).aggregate(total_sum=Sum('total_sum'))['total_sum']
+        if sum_of_orders_today is None:
+            sum_of_orders_today = 0
+
+        if self.request.user.role == UserRole.WORKER:
+            try:
+                worker_profile = Worker.objects.get(user=self.request.user)
+                active_orders_worker = Order.objects.filter(worker=worker_profile, state=OrderState.IN_PROGRESS.value).count()
+                orders_today_worker_count = Order.objects.filter(worker=worker_profile, date_accept=today).count()
+                overdue_orders_worker_count = Order.objects.filter(
+                    Q(date_ready__lt=now) |
+                    Q(date_ready=now, date_ready__time__lt=now.time()),
+                    state=OrderState.IN_PROGRESS.value, worker=worker_profile
+                ).count()
+                is_urgent_worker_count = Order.objects.filter(worker=worker_profile, is_urgent=True, state=OrderState.IN_PROGRESS.value).count()
+                waiting_pay_worker_count = Order.objects.filter(worker=worker_profile, state=OrderState.COMPLETED_BUT_NOT_PAID.value).count()
+                sum_of_orders_worker_today = Order.objects.filter(worker=worker_profile, date_accept=today).aggregate(total_sum=Sum('total_sum'))[
+                    'total_sum']
+                if sum_of_orders_worker_today is None:
+                    sum_of_orders_worker_today = 0
+                context['active_orders_worker'] = active_orders_worker
+                context['orders_today_worker_count'] = orders_today_worker_count
+                context['overdue_orders_worker_count'] = overdue_orders_worker_count
+                context['is_urgent_worker_count'] = is_urgent_worker_count
+                context['waiting_pay_worker_count'] = waiting_pay_worker_count
+                context['sum_of_orders_worker_today'] = sum_of_orders_worker_today
+
+            except Worker.DoesNotExist:
+                active_orders_worker = active_orders
+                orders_today_worker_count = orders_today_count
+                overdue_orders_worker_count = overdue_orders_count
+                is_urgent_worker_count = is_urgent_count
+                waiting_pay_worker_count = waiting_pay_count
+                sum_of_orders_worker_today = sum_of_orders_today
+
+        context['active_orders'] = active_orders
+        context['orders_today_count'] = orders_today_count
+        context['overdue_orders_count'] = overdue_orders_count
+        context['is_urgent_count'] = is_urgent_count
+        context['waiting_pay_count'] = waiting_pay_count
+        context['sum_of_orders_today'] = sum_of_orders_today
+
+        context['query'] = self.request.GET.get('q', '')  # Передаем последний запрос в контекст
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         # Проверка, авторизован ли пользователь
@@ -127,7 +197,6 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
         client.save()
 
         messages.success(request, 'Заметки успешно сохранены')
-
 
         # Возвращаем сообщение об успешном сохранении
         return HttpResponseRedirect(reverse('client_details', kwargs={'pk': client.pk}))
@@ -211,8 +280,16 @@ class ClientOrderEditView(UpdateView):
         return reverse_lazy('client_details', kwargs={'pk': pk})
 
 
-def dashboard(request):
-    return render(request, 'dashboard/dashboard.html')
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['order_url'] = 'order_delete'  # URL для удаления заказа
+        # Получение данных о заказах и добавление их в контекст
+        orders = Order.objects.all()
+        context['orders'] = orders
+        return context
 
 
 def import_clients(request):
@@ -356,3 +433,192 @@ class OrderDeleteView(DeleteView):
 
         success_url = self.get_success_url()
         return redirect(success_url)
+
+
+class HistoryView(LoginRequiredMixin, TemplateView):
+    template_name = 'history/order_history.html'
+
+
+class WorkersList(LoginRequiredMixin, TemplateView):
+    template_name = 'workers/workers_list.html'
+    context_object_name = 'workers_list'
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Worker.objects.filter(Q(full_name__icontains=query) | Q(phone__icontains=query)).order_by('id')
+        else:
+            return Worker.objects.all().order_by('id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        workers_list = self.get_queryset()
+
+        context['workers_list'] = workers_list
+        context['query'] = self.request.GET.get('q', '')  # Передаем последний запрос в контекст
+        return context
+
+
+class CreateWorkerView(LoginRequiredMixin, CreateView):
+    model = Worker
+    form_class = WorkerForm
+    template_name = 'workers/new_worker.html'
+    success_url = reverse_lazy('workers_list')
+
+
+class WorkerDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Worker
+    template_name = 'workers/worker_delete_confirmation.html'
+    success_url = reverse_lazy('workers_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def delete(self, request, *args, **kwargs):
+        worker = self.get_object()  # Получаем объект клиента
+        success_url = self.get_success_url()
+        self.object = worker
+        if success_url == self.request.path:
+            messages.success(request, 'Работник успешно удален.')
+        worker.delete()
+        return redirect(success_url)
+
+
+class OrderListView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        date_str = request.GET.get('date')
+        user = request.user
+        if date_str:
+            date = parse_date(date_str)
+            if request.user.role == UserRole.WORKER:
+                try:
+                    worker_profile = Worker.objects.get(user=request.user)
+                    orders = Order.objects.filter(worker=worker_profile, state=OrderState.IN_PROGRESS,
+                                                  date_ready__date=date).order_by('date_ready')
+                except Worker.DoesNotExist:
+                    orders = []
+            else:
+                orders = Order.objects.filter(date_ready__date=date).order_by('date_ready')
+        else:
+            if request.user.role == UserRole.WORKER:
+                try:
+                    worker_profile = Worker.objects.get(user=request.user)
+                    orders = Order.objects.filter(worker=worker_profile, state=OrderState.IN_PROGRESS).order_by(
+                        'date_ready')
+                except Worker.DoesNotExist:
+                    orders = []
+            else:
+                orders = Order.objects.all().order_by('date_ready')
+
+        order_list = []
+        for order in orders:
+            order_info = {
+                'title': order.service_name,
+                'id': order.id,
+                'date_accept': order.date_accept.strftime("%Y-%m-%d") if order.date_accept else None,
+                'start': order.date_ready.isoformat() if order.date_ready else None,
+                'notes': order.notes if order.notes != 'null' else None,
+                'totalSum': str(order.total_sum),
+                'isUrgent': order.is_urgent,
+            }
+
+            if user.role == UserRole.OWNER and order.worker:
+                order_info['worker'] = {
+                    'first_name': order.worker.user.first_name,
+                    'last_name': order.worker.user.last_name
+                }
+            order_list.append(order_info)
+
+        return JsonResponse(order_list, safe=False)
+
+
+# Dashboard
+
+
+class OrderDashboardDeleteView(View):
+    model = Order
+    template_name = 'orders/order_delete_confirmation.html'
+
+    def get_success_url(self):
+        client_id = self.object.client.id
+        messages.success(self.request, 'Заказ успешно удален')
+        return reverse_lazy('dashboard')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+
+def delete_order(request, order_id):
+    try:
+        order = Order.objects.get(pk=order_id)
+        order.delete()
+        return JsonResponse({'success': True})
+    except Order.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Order does not exist'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+# History
+
+class OrderHistoryByDayListView(LoginRequiredMixin, ListView):
+    model = Order
+    template_name = 'history/order_history.html'
+    context_object_name = 'orders_by_day'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.now().date()
+
+        # Получение выбранного периода времени из GET-параметров
+        period = self.request.GET.get('period', 'month')
+
+        if period == 'week':
+            start_date = today - timedelta(days=7)
+        elif period == 'month':
+            start_date = today - timedelta(days=30)
+        elif period == 'year':
+            start_date = today - timedelta(days=365)
+        else:
+            start_date = today - timedelta(days=30)  # Default to month
+
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'worker'):
+            orders = Order.objects.filter(
+                date_accept__range=(start_date, today),
+                worker=self.request.user.worker
+            )
+        else:
+            orders = Order.objects.filter(
+                date_accept__range=(start_date, today)
+            )
+
+        sort_field = self.request.GET.get('sort', 'date_accept')
+        sort_direction = self.request.GET.get('direction', 'desc')  # Default to 'desc'
+
+        if sort_direction == 'desc':
+            sort_field = f'-{sort_field}'
+
+        orders = orders.annotate(
+            order_status=Case(
+                When(state=OrderState.IN_PROGRESS.value, then=Value('1')),
+                When(state=OrderState.COMPLETED.value, then=Value('2')),
+                default=Value('3'),
+                output_field=CharField(),
+            )
+        ).order_by(sort_field)
+
+        # Группировка заказов по дням
+        orders_by_day = defaultdict(list)
+        for order in orders:
+            orders_by_day[order.date_accept].append(order)
+
+        # Сортировка дней в порядке убывания
+        context['orders_by_day'] = sorted(orders_by_day.items(), reverse=True)
+        context['selected_period'] = period
+
+        # Проверка на наличие срочных заказов
+        context['has_urgent_orders'] = any(order.is_urgent for order in orders)
+        return context

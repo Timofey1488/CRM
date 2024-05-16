@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from core.enums.order_state import OrderState
@@ -44,6 +46,12 @@ class Worker(Base):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, verbose_name="Phone Number", unique=True)
     position = models.CharField(max_length=30, verbose_name='Position')
+    hire_date = models.DateField(null=True, blank=True)
+    balance = models.DecimalField(validators=[MinValueValidator(0.00)],
+                                  default=0,
+                                  decimal_places=2,
+                                  max_digits=9
+                                  )
 
     def __str__(self):
         return self.user.first_name + self.phone
@@ -72,15 +80,19 @@ class WorkerStatistics(BaseStatistics):
                                                  )
 
 
-class Owner(Base):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=15, verbose_name="Phone Number", unique=True)
-    address = models.CharField(max_length=256, verbose_name="Home address")
-
-    worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.user.first_name + self.phone
+# class OrderManager(models.Manager):
+#
+#     def get_all_events(self, user):
+#         events = Order.objects.filter(user=user, is_active=True, is_deleted=False)
+#         return events
+#
+#     def get_running_events(self, worker):
+#         running_events = Order.objects.filter(
+#             worker=worker,
+#             is_active=True,
+#             date_ready__gte=datetime.now().date(),
+#         ).order_by("start_time")
+#         return running_events
 
 
 class Order(Base):
@@ -98,9 +110,8 @@ class Order(Base):
                              default=OrderState.PLANNED.value
                              )
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
+    is_urgent = models.BooleanField(default=False, null=True, blank=True)
+    worker = models.ForeignKey(Worker, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
 
     def __str__(self):
         return str(self.date_accept) + " " + str(self.service_name) + str(self.total_sum) + 'руб'
-
-
-
