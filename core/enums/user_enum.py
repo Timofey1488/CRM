@@ -2,7 +2,7 @@ from django.db import models
 
 
 class UserRole(models.TextChoices):  # User Type
-    CLIENT = "client"
+    GUEST = "guest"
     WORKER = "worker"
     OWNER = "owner"
 

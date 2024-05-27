@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+    <div class="flex justify-between items-center mt-8">
+        <h1 class="text-2xl font-semibold text-gray-700">Заказы на выдачу</h1>
+        <a href="{% url 'home' %}" class="no-underline bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Вернуться
+        </a>
+    </div>
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+    <div class="overflow-x-auto">
+    <table class="w-full border-collapse border border-gray-200 mt-2 mb-6">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="id" data-direction="asc">Номер</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="service_name" data-direction="asc">Услуга</th>
+                <th class="py-2 px-4 border border-gray-200 sortable wider-client-column" data-field="client" data-direction="asc">Клиент</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="total_sum" data-direction="asc">Сумма</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="state" data-direction="asc">Статус</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="worker__user__first_name" data-direction="asc"></th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="worker__user__first_name" data-direction="asc">Уведомить</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in queue_orders %}
+                <tr onclick="window.location='{% url 'client_update_order' order.id %}?next_page={{ request.path }}';" class="cursor-pointer hover:bg-gray-300 hover-border">
+                    <th class="py-2 px-4 border border-gray-200">{{ order.id }}</th>
+                    <td class="py-2 px-4 border border-gray-200">
+                        {% if order.is_urgent %}
+                            <span><i class="text-red-500 fa-solid fa-fire"></i></span>
+                        {% endif %}
+                        {{ order.service_name }}
+                    </td>
+                    <td class="py-2 px-4 border border-gray-200 wider-client-column">{{ order.client }} </td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
+                    <td class="py-2 px-4 border border-gray-200">
+                        <a class="no-underline" href="{% url 'take_order' order.id %}">
+                            <button class="flex items-center bg-green-500 text-white font-semibold py-2 px-6 rounded shadow-md hover:bg-green-600 hover:shadow-lg transition duration-300 ease-in-out whitespace-nowrap">
+                                <i class="mr-2 fa-solid fa-person"></i> Забрали
+                            </button>
+                        </a>
+                    </td>
+                    <td class="py-2 px-8 border border-gray-200 m-auto justify-center items-center">
+                        {% if request.user.is_staff %}
+                            <a class="no-underline" href="{% url 'send_mail' order.client.id order.id %}">
+                            {% if order.is_notified %}
+                                <i class="text-green-500 fa-solid fa-check mr-1"></i>
+                            {% else %}
+                              <button class="no-underline flex items-center bg-blue-500 text-white font-semibold py-2 px-6 rounded shadow-md hover:bg-blue-600 hover:shadow-lg transition duration-300 ease-in-out whitespace-nowrap">
+                                  <i class="fa-solid fa-envelope mr-2"></i> Уведомить
+                                </button>
+                            {% endif %}
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <style>
+        .wider-client-column {
+            width: 400px; /* Установите желаемую ширину */
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.sortable').on('click', function () {
+                var field = $(this).data('field');
+                var direction = $(this).data('direction');
+                var newDirection = direction === 'asc' ? 'desc' : 'asc';
+                window.location.href = `?sort=${field}&direction=${newDirection}`;
+            });
+        });
+    </script>
+{% endblock %}

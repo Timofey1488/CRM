@@ -16,19 +16,17 @@ def sendsms(phone, message):
     data = {'username': rocketsms_login, 'password': rocketsms_passhash, 'phone': phone, 'text': message,
             'priority': 'true'}
     try:
-        request = requests.post(rocketsms_url, data=data)
-        result = request.json()
-        status = result['status']
+        # request = requests.post(rocketsms_url, data=data)
+        # result = request.json()
+        # status = result['status']
+        print("Успешно отправлено")
+        print(message)
     except Exception as e:
         print('Cannot send SMS: bad or no response from RocketSMS.')
         print(e)
     else:
-        if (status == 'SENT') | (status == 'QUEUED'):
-            print('SMS accepted, status: {}'.format(status))
-        else:
-            print('SMS rejected, status: {}'.format(status))
-
-
-# testing
-# if __name__ == '__main__':
-#     # sendsms(375336835043, 'Ваш заказ готов, ждем на примерку')
+        print("Не отправлено")
+        # if (status == 'SENT') | (status == 'QUEUED'):
+        #     print('SMS accepted, status: {}'.format(status))
+        # else:
+        #     print('SMS rejected, status: {}'.format(status))

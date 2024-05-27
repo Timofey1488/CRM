@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from django.utils import timezone, formats
@@ -68,6 +69,40 @@ class ClientEditForm(forms.ModelForm):
             super().__init__(*args, **kwargs)
 
 
+class WorkerEditForm(forms.ModelForm):
+    class Meta:
+        model = Worker
+        fields = ['phone', 'position']
+        labels = {
+            'phone': 'Phone number',
+            'position': 'Position',
+
+        }
+        widgets = {
+            'phone': forms.NumberInput(attrs={'class': 'form-control'}),
+            'position': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+        def __init__(self, *args, **kwargs):
+            instance = kwargs.get('instance')
+            if instance:
+                kwargs['initial'] = {
+                    'phone': instance.phone,
+                    'position': instance.position,
+                }
+            super().__init__(*args, **kwargs)
+
+        def clean_phone(self):
+            phone = self.cleaned_data.get('phone')
+            # Define the regex pattern for the phone number
+            pattern = r'^\+375(29|33|25)\d{7}$'
+            if not re.match(pattern, phone):
+                raise forms.ValidationError(
+                    "Phone number must start with +375 and contain one of the codes (29), 33, or 25, followed by 7 digits."
+                )
+            return phone
+
+
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
@@ -103,7 +138,7 @@ class OrderCreateForm(forms.ModelForm):
         # Создаем список выборов для состояния заказа
         choices = [(state.value, state.value) for state in OrderState if
                    state in [OrderState.PLANNED, OrderState.IN_PROGRESS, OrderState.COMPLETED,
-                             OrderState.COMPLETED_BUT_NOT_PAID]]
+                             OrderState.COMPLETED_BUT_NOT_PAID, OrderState.PAID_BUT_NOT_COMPLETED, OrderState.TAKEN]]
 
         # Устанавливаем выборы для поля состояния
         self.fields['state'].choices = choices
@@ -120,7 +155,7 @@ class OrderCreateForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields = ['date_accept', 'date_ready', 'service_name', 'notes', 'total_sum', 'state', 'is_urgent']
+        fields = ['date_accept', 'date_ready', 'service_name', 'notes', 'total_sum', 'state', 'is_urgent','worker']
         labels = {
             'date_accept': 'Дата принятия',
             'date_ready': 'Дата готовности',
@@ -128,6 +163,7 @@ class OrderCreateForm(forms.ModelForm):
             'notes': 'Заметки',
             'total_sum': 'Сумма заказа',
             'state': 'Статус',
+            'worker': 'Выполняет',
             'is_urgent': 'Срочный',
         }
         widgets = {
@@ -137,6 +173,7 @@ class OrderCreateForm(forms.ModelForm):
             'notes': forms.TextInput(attrs={'class': 'form-control', 'required': False}),
             'total_sum': forms.NumberInput(attrs={'class': 'form-control'}),
             'state': forms.Select(attrs={'class': 'form-control'}),
+            'worker': forms.Select(attrs={'class': 'form-control'}),
             'is_urgent': forms.CheckboxInput(attrs={'class': 'form-checkbox h-5 w-5 text-indigo-600'}),
         }
         required = {
@@ -154,6 +191,7 @@ class OrderCreateForm(forms.ModelForm):
 class WorkerForm(forms.ModelForm):
     # Поля пользователя
     username = forms.CharField(label='Логин', max_length=150)
+    email = forms.EmailField(label='Email', max_length=150)
     password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
     first_name = forms.CharField(label='Имя', max_length=30)
     last_name = forms.CharField(label='Фамилия', max_length=30)
@@ -173,11 +211,22 @@ class WorkerForm(forms.ModelForm):
             raise forms.ValidationError("Это имя пользователя уже занято.")
         return username
 
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        # Define the regex pattern for the phone number
+        pattern = r'^\+375(29|33|25)\d{7}$'
+        if not re.match(pattern, phone):
+            raise forms.ValidationError(
+                "Номер телефона должен начинаться с +375 и содержать следующие коды 29, 33 или 25"
+            )
+        return phone
+
     def save(self, commit=True):
         # Сохранение пользователя
         user = User.objects.create_user(
             username=self.cleaned_data['username'],
             password=self.cleaned_data['password'],
+            email=self.cleaned_data['email'],
             role=UserRole.WORKER,
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name']

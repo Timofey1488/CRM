@@ -11,23 +11,3 @@ class Base(models.Model):  # Model with common fields
         abstract = True
 
 
-class BaseStatistics(models.Model):  # Model with common fields
-    total_for_all_time = models.DecimalField(max_digits=10,
-                                             decimal_places=2,
-                                             validators=[MinValueValidator(0.00)],
-                                             default=0.0)
-    total_earn_for_month = models.DecimalField(max_digits=10,
-                                               decimal_places=2,
-                                               validators=[MinValueValidator(0.00)],
-                                               default=0.0)
-    total_earn_for_week = models.DecimalField(max_digits=10,
-                                              decimal_places=2,
-                                              validators=[MinValueValidator(0.00)],
-                                              default=0.0)
-    total_earn_for_day = models.DecimalField(max_digits=10,
-                                             decimal_places=2,
-                                             validators=[MinValueValidator(0.00)],
-                                             default=0.0)
-
-    class Meta:
-        abstract = True

@@ -1,10 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'core/base.html' %}
+{% load widget_tweaks %}
 
-</body>
-</html>
+{% block content %}
+    <div class="flex justify-between  items-center  mt-8">
+          <h1 class="text-2xl font-semibold text-gray-700 ">Заказы за сегодня</h1>
+          <a href="{% url 'home' %}" class="no-underline bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Вернуться
+          </a>
+    </div>
+
+    <hr class="border-b-2 border-gray-300 my-2 mb-10">
+    <table class="w-full border-collapse border border-gray-200 mt-2 mb-6">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="id" data-direction="asc">Номер</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="service_name" data-direction="asc">Услуга</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="total_sum" data-direction="asc">Сумма <i class="fa-solid fa-arrow-down-wide-short"></i></th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="state" data-direction="asc">Статус</th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="date_ready" data-direction="asc">Дата сдачи <i class="fa-solid fa-arrow-down-wide-short"></i></th>
+                <th class="py-2 px-4 border border-gray-200 sortable" data-field="worker__user__first_name" data-direction="asc">Кем выполнен</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in active_orders %}
+                <tr onclick="window.location='{% url 'client_update_order' order.id %}#';" class="cursor-pointer hover:bg-gray-300 hover-border">
+                    <th class="py-2 px-4 border border-gray-200">{{ order.id }}</th>
+                    <td class="py-2 px-4 border border-gray-200">{% if order.is_urgent %}
+                            <span><i class="text-red-500 fa-solid fa-fire"></i></span>
+                        {% endif %} {{ order.service_name }}
+                    </td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.total_sum|floatformat:"0" }} руб</td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.state }}</td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.date_ready|date:"DATETIME_FORMAT" }}</td>
+                    <td class="py-2 px-4 border border-gray-200">{{ order.worker.user.first_name }} {{ order.worker.user.last_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.sortable').on('click', function () {
+                var field = $(this).data('field');
+                var direction = $(this).data('direction');
+                var newDirection = direction === 'asc' ? 'desc' : 'asc';
+                window.location.href = `?sort=${field}&direction=${newDirection}`;
+            });
+        });
+    </script>
+{% endblock %}

@@ -29,6 +29,22 @@
                  Доска заказов
             </div>
         </a>
+        <hr  style="w-full border: 2px solid white; margin: 0">
+        {% if request.user.is_staff%}
+             <a href="{% url 'queue_orders' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
+                 <div class=" pl-4 icon">
+                    <i style="margin-right: 5px" class="pl-3 pr-1 fa-regular fa-credit-card"></i>
+                     Выдача заказов
+                </div>
+            </a>
+            {% else %}
+                <a href="{% url 'queue_orders' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
+                     <div class="pl-5 icon">
+                        <i style="margin-right: 5px" class="pl-3 pr-1 fa-regular fa-credit-card"></i>
+                        Выдача заказов
+                    </div>
+                </a>
+            {% endif %}
          <hr style="w-full border: 3px solid white; margin: 0">
         <a href="{% url 'business_analytics' %}" class=" menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="pl-5 icon">
@@ -108,7 +124,21 @@
                 </div>
             </a>
         {% endif %}
-
+        {% if request.user.is_staff%}
+         <a href="{% url 'queue_orders' %}" class="menu-item flex items-center hover:text-gray-400 hover:border border-white rounded p-2">
+             <div class="icon">
+                <i style="margin-right: 5px" class="pl-2 pr-1 fa-regular fa-credit-card"></i>
+                 Выдача заказов
+            </div>
+        </a>
+        {% else %}
+            <a href="{% url 'queue_orders' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
+                 <div class="icon">
+                    <i style="margin-right: 5px" class="pl-2 pr-1 fa-regular fa-credit-card"></i>
+                    Выдача заказов
+                </div>
+            </a>
+        {% endif %}
         {% if request.user.is_staff%}
         <a href="{% url 'business_analytics' %}" class="menu-item flex  items-center hover:text-gray-400 hover:border border-white rounded p-2">
              <div class="icon">
@@ -139,20 +169,17 @@
             </div>
         </a>
     </div>
-    <div >
-        <div class=" text-white bottom-0 flex justify-between rounded menu-item pb-3 pt-3">
-          <a href="{% url 'user_logout' %}" class=" text-white text-decoration-none flex  hover:border border-white  ">
-             <div class="m-0">
-
+    <div class="text-white bottom-0 flex row justify-between rounded  pt-3" >
+        <div class=" text-white bottom-0 flex justify-between rounded  pb-3 pt-3 " >
+             <div class="m-0 pl-2 ">
                   {{ request.user.first_name }} {{ request.user.last_name }}
             </div>
-            </a>
       </div>
         <hr style="border-top: 2px solid white; margin: 0">
-        <div class="pl-2 text-white text-center bottom-0 flex mt-0 menu-item rounded ">
+        <div class="pl-2 text-white text-center bottom-0 flex menu-item mt-0 rounded ">
             <!-- Cсылка на выход из аккаунта -->
 
-            <a href="{% url 'user_logout' %}" class="menu-item flex rounded p-1">
+            <a href="{% url 'user_logout' %}" class="no-underline hover:text-gray-400 flex w-full h-full text-white rounded p-1">
              <div class="">
                 <i style="margin-right: 5px" class="fa fa-sign-out" aria-hidden="true"></i>
                  Выйти

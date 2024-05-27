@@ -12,7 +12,7 @@
     #calendar-container {
         display: flex;
         height: 100vh; /* Full viewport height */
-         margin-right: -85px;
+        margin-right: -85px;
     }
     #calendar {
         flex-grow: 1;
@@ -35,49 +35,45 @@
         padding: 10px;
         margin-bottom: 10px;
         border: 1px solid #ddd;
+        border-radius: 8px; /* Закругленные края */
+        transition: background-color 0.3s ease, transform 0.3s ease; /* Плавный переход для эффекта наведения */
+    }
+
+    .order-item:hover {
+        background-color: #e9e9e9; /* Цвет фона при наведении */
+        transform: scale(1.02); /* Небольшое увеличение при наведении */
     }
     .urgent {
         border: 1px solid red !important;
         background-color: #ffe6e6 !important;
     }
+    .overdue {
+        border: 1px solid #ffbd2c !important;
+        background-color: #ffbd2c !important; /* Light red for overdue */
+    }
     .fc a {
-        text-decoration:none !important;
+        text-decoration: none !important;
         color: black !important; /* Change text color to black */
     }
     .fc-content {
         color: black !important; /* Change text color to black */
     }
-    .btn-edit,
-    .btn-delete {
-        background-color: #4CAF50; /* Green */
-        border: none;
-        color: white;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        transition-duration: 0.4s;
-        cursor: pointer;
-    }
 
-    .btn-edit {
-        background-color: #008CBA; /* Blue */
-    }
-
-    .btn-delete {
-        background-color: #f44336; /* Red */
-    }
-
-    .btn-edit:hover,
-    .btn-delete:hover {
-        background-color: #3e8e41;
-    }
     .high-activity {
-    background-color: red !important;
+        background-color: #F08080 !important;
+        border: 1px solid red !important;
+    }
+    .fc-event-background {
+        background-color: #3788d8; /* Цвет по умолчанию */
+        border: 1px solid #3788d8;
+        opacity: 0.5;
+    }
+    .fc-event-background.urgent {
+        background-color: #ffe6e6; /* Цвет для срочных заказов */
+        border: 1px solid red;
     }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
 {% endblock %}
 
 {% block content %}
@@ -91,6 +87,8 @@
 {% endblock %}
 
 {% block extrascripts %}
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
@@ -111,37 +109,53 @@
                 let content = document.createElement('div');
                 let textNode = document.createTextNode(arg.event.title);
                 content.appendChild(textNode);
+
+                // Создаем элемент для всплывающей подсказки
+                let tooltipContent = document.createElement('div');
+                tooltipContent.innerHTML = `
+                    <h4 style="margin: 0; line-height: 1.7;">№${arg.event.id} ${arg.event.title}</h4>
+                    <p style="margin: 0; line-height:  1.2;">Клиент: ${arg.event.extendedProps.client}</p>
+                    <p style="margin: 0; line-height: 1.7;">Номер: ${arg.event.extendedProps.number}</p>
+                    <p style="margin: 0; line-height: 1.7;">Сумма: <b>${arg.event.extendedProps.totalSum} руб.</b></p>
+                `;
                 if (arg.event.extendedProps.isUrgent) {
                     content.style.backgroundColor = '#ffe6e6';
                     content.style.color = 'black';
                     content.style.border = '1px solid red';
-                }
-                else {
+                } else if (arg.event.extendedProps.isOverdue) {
+                    content.style.backgroundColor = '#ffae00';
+                    content.style.color = 'black';
+                    content.style.border = '1px solid #ffae00';
+                } else {
                     content.style.backgroundColor = '#3788d8';
                     content.style.color = 'white';
                     content.style.border = '1px solid #3788d8';
                 }
+
+                tippy(content, {
+                    content: tooltipContent,
+                    allowHTML: true,
+                    theme: 'light',
+                });
+
                 return { domNodes: [content] };
             },
-           dayCellContent: function(arg) {
+            dayCellDidMount: function(arg) {
+                const dateStr = arg.date.getFullYear() + '-' + ('0' + (arg.date.getMonth() + 1)).slice(-2) + '-' + ('0' + arg.date.getDate()).slice(-2);
 
-            const dateStr = arg.date.getFullYear() + '-' + ('0' + (arg.date.getMonth() + 1)).slice(-2) + '-' + ('0' + arg.date.getDate()).slice(-2);
-
-            // Запрос к серверу для получения списка заказов для данной даты
-            fetch('/orders?date=' + dateStr)
-                .then(response => response.json())
-                .then(data => {
-                    // Проверка условий и установка класса для ячейки календаря
-                    const totalSum = data.reduce((acc, curr) => acc + parseFloat(curr.totalSum), 0);
-                    if (data.length > 3 || totalSum > 300) {
-                        const el = arg.el;
-                        if (el) {
-                            el.classList.add('high-activity'); // Добавляем класс "high-activity"
+                fetch('/orders?date=' + dateStr)
+                    .then(response => response.json())
+                    .then(data => {
+                        const totalSum = data.reduce((acc, curr) => acc + parseFloat(curr.totalSum), 0);
+                        if (totalSum > 300) {
+                            const el = arg.el;
+                            if (el) {
+                                el.classList.add('high-activity');
+                            }
                         }
-                    }
-                })
-                .catch(error => console.error('Ошибка:', error));
-        }
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+            }
         });
 
         calendar.render();
@@ -150,7 +164,6 @@
             fetch('/orders?date=' + date)
                 .then(response => response.json())
                 .then(data => {
-                    // Сортируем заказы, чтобы срочные были первыми
                     data.sort((a, b) => b.isUrgent - a.isUrgent);
 
                     orderListEl.innerHTML = `<h3 class="font-bold text-lg mb-2">Заказы на ${date}</h3>`;
@@ -162,33 +175,59 @@
                             orderItem.className = 'order-item';
                             if (order.isUrgent) {
                                 orderItem.classList.add('urgent');
+                            } else if (order.isOverdue) {
+                                orderItem.classList.add('overdue');
                             }
                             const totalSumFormatted = parseFloat(order.totalSum).toLocaleString('ru-RU', {
                                 minimumFractionDigits: 0,
                                 maximumFractionDigits: 2
                             });
                             orderItem.innerHTML = `
-                                <h4>${order.isUrgent ? '🔥 ' : ''}${order.title}</h4>
-                                <div class="ml-3" style="line-height: 0.7;">
-                                    <p>№: <b>${order.id}</b></p>
+                                <button class="btn-edit " data-order-id="${order.id}">
+                                 <h5 class="flex items-left">№: <b>${order.id}</b></h5>
+                                <h4 class="flex items-left mb-3">${order.isUrgent ? '🔥 ' : ''} ${order.isOverdue ? '🕐 ' : ''}${order.title}</h4>
+                                <div class="ml-3" style="line-height: 0.7;"
                                     <p>Принято: ${new Date(order.date_accept).toLocaleDateString()}</p>
-                                    <p>Поставлено на: ${order.start ? new Date(order.start).toLocaleDateString() : 'Не указано'}</p>
-                                    <p>Сумма: ${totalSumFormatted} руб</p>
+                                    <p>Поставлено на: ${order.start ? new Date(order.start).toLocaleDateString('ru-RU', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'}) : 'Не указано'}</p>
+                                    <hr>   
+                                    <div class="">
+                                        <p>Сумма: <b>${totalSumFormatted} руб</b></p>
+                                    </div>
+
                                     ${order.worker ? `<p>Выполняет: ${order.worker.first_name} ${order.worker.last_name}</p>` : ''}
                                     <p>${order.notes}</p>
-                                    <button class="btn-edit" data-order-id="${order.id}">Изменить</button>
-                                    <button class="btn-delete" data-order-id="${order.id}">Удалить</button>
+                                    <div class="flex justify-space-between">
+</div>
+                                     <button class="btn-ready bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" data-order-id="${order.id}">Сделано</button>
+                                     <button class="btn-delete bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" data-order-id="${order.id}">Удалить</button>
                                 </div>
-
+                                </button>
                             `;
-                             // Обработчик для кнопки "Удалить"
+                            orderItem.querySelector('.btn-edit').addEventListener('click', function() {
+                                const orderId = this.getAttribute('data-order-id');
+                                const editUrl = "{% url 'dashboard_order_update' pk=12345 %}".replace('12345', orderId);
+                                window.location.href = editUrl;
+                            });
+                            orderItem.querySelector('.btn-ready').addEventListener('click', function() {
+                                const orderId = this.getAttribute('data-order-id');
+                                const readyUrl = "{% url 'dashboard_order_ready' pk=12345 %}".replace('12345', orderId);
+                                window.location.href = readyUrl;
+                            });
+                            orderItem.addEventListener('click', function(event) {
+                                if (event.target.classList.contains('btn-edit')) { // Проверяем, был ли клик по кнопке "Изменить"
+                                    event.preventDefault(); // Отменяем стандартное действие ссылки
+                                    const orderId = event.target.getAttribute('data-order-id');
+                                    const editUrl = "{% url 'dashboard_order_update' pk=12345 %}".replace('12345', orderId);
+                                    window.location.href = editUrl;
+                                }
+                            });
                             orderItem.querySelector('.btn-delete').addEventListener('click', function() {
                                 const orderId = this.getAttribute('data-order-id');
                                 if (confirm('Вы уверены, что хотите удалить этот заказ?')) {
                                     fetch(`/orders/delete/${orderId}/`, {
                                         method: 'DELETE',
                                         headers: {
-                                            'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF-токен из cookie
+                                            'X-CSRFToken': getCookie('csrftoken'),
                                             'Content-Type': 'application/json'
                                         }
                                     })
@@ -199,10 +238,8 @@
                                         return response.json();
                                     })
                                     .then(data => {
-                                        // Обрабатываем успешный ответ
                                         if (data.success) {
                                             alert('Заказ успешно удален');
-                                            // Обновляем страницу или список заказов
                                             location.reload();
                                         } else {
                                             alert('Ошибка удаления заказа: ' + data.error);
@@ -216,36 +253,11 @@
                             });
                             orderListEl.appendChild(orderItem);
                         });
-
-                        // Attach event listeners to edit and delete buttons
-                        orderListEl.querySelectorAll('.btn-edit').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                const orderId = this.getAttribute('data-order-id');
-                                // Call a function to handle editing order with orderId
-                                // You can implement this function according to your needs
-                                editOrder(orderId);
-                            });
-                        });
-
-                        orderListEl.querySelectorAll('.btn-delete').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                const orderId = this.getAttribute('data-order-id');
-                                // Call a function to handle deleting order with orderId
-                                // You can implement this function according to your needs
-                                deleteOrder(orderId);
-                            });
-                        });
                     }
                 })
                 .catch(error => console.error('Ошибка:', error));
         }
 
-        function editOrder(orderId) {
-            // Implement functionality to edit order with given orderId
-            console.log('Edit order with ID:', orderId);
-        }
-
-        // Функция для получения CSRF-токена из cookie
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -259,11 +271,7 @@
                 }
             }
             return cookieValue;
-    }
-
+        }
     });
-
-
-
 </script>
 {% endblock %}
